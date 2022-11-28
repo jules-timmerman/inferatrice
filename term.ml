@@ -1,17 +1,24 @@
 (** Le type [t] correspond à la représentation interne des termes.
-  * Le type [var] représente les variables, c'est à dire les objets que
-  * l'on peut instantier.
-  * Le type [obs_t] correspond à un terme superficiellement explicité. *)
+* Le type [var] représente les variables, c'est à dire les objets que
+* l'on peut instantier.
+* Le type [obs_t] correspond à un terme superficiellement explicité. *)
 
-  type var = string
-  type t = Fun of string * t list | Var of var
-  type obs_t = t
+type var = string
+type t = Fun of string * t list | Var of var
+type obs_t = t
+
+
+(** Manipulation de l'état: sauvegarde, restauration. *)
+
+type state = (var * t) list
+let global_state: state ref = ref []
 
   let variable_number: int ref = ref 0
   
-  (** Modification d'une variable. *)
+  (** Modification d'une variable. 
+      On rajoute en tête de liste pour le nouveau *)
   let bind (v: var) (t: t) : unit =
-    failwith "TODO bind"
+    global_state := (v,t)::(!global_state)
   
   (** Observation d'un terme. *)
   let observe (t: t) : obs_t =
@@ -44,25 +51,21 @@
   let fresh_var () : t =
     var (fresh ())
   
-  (** Manipulation de l'état: sauvegarde, restauration. *)
-  
-  type state = (var * t) list
-  let global_state: state = []
   
   (** [save ()] renvoie un descripteur de l'état actuel. *)
   let save () : state =
-    failwith "TODO save"
+    !global_state
   
   (** [restore s] restaure les variables dans l'état décrit par [s]. *)
   let restore (s: state) : unit = 
-    failwith "TODO restore"
+    global_state := s
   
   (** Remise à zéro de l'état interne du module.
       Aucun impact sur les termes déja créés, mais garantit que
       les futurs usages seront comme dans un module fraichement
       initialisé. *)
   let reset () : unit =
-    failwith "TODO reset"
+    global_state := []
   
   (** Pretty printing *)
   

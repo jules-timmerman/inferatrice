@@ -1,0 +1,7 @@
+# L'infératrice tourne à l'infini, rien ne l'arrête.
+
+derive p(a,X)
+  from p(a,a).
+
+derive p(b,X)
+  from p(b,b).

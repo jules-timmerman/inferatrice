@@ -1,0 +1,49 @@
+# Addition
+
+derive plus(z,Y,Y).
+
+derive plus(s(X),Y,s(Z))
+  from plus(X,Y,Z).
+
+# Comparaison
+
+derive lt(z,s(X)).
+
+derive lt(s(X),s(Y))
+  from lt(X,Y).
+
+# Division par deux, parité
+
+derive half(z,z).
+derive half(s(s(X)),s(Y)) from half(X,Y).
+
+derive even(z).
+derive even(s(s(X))) from even(X).
+
+# Ackermann
+
+derive ack(z,X,s(X)).
+derive ack(s(X),z,Y)    from ack(X,s(z),Y).
+derive ack(s(X),s(Y),Z) from ack(s(X),Y,R), ack(X,R,Z).
+
+# Zero
+
+derive zero(z).
+
+#
+# -- Exemples ----------------------------------------
+#
+
+# Unique solution:
+# ? lt(2,3).
+# ? plus(2,3,5).
+# ? plus(2,3,X).
+# ? ack(3,5,X).
+# ? ack(2,3,s(X)), half(X,H), even(H).
+
+# L'infératrice termine, sans solution:
+# ? plus(2,3,X), lt(X,5).
+# ? ack(2,2,s(X)), half(X,H), even(H).
+# ? ack(3,5,0).
+# ? plus(X,Y,66_666), zero(X), zero(Y).
+# ? plus(X,Y,100_000), zero(X), zero(Y).

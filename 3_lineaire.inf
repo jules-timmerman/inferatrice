@@ -1,0 +1,6 @@
+# L'infératrice résout btree(X,s^k(z)) en temps linéaire.
+# Pas de difficulté avec k=10_000.
+
+derive btree(leaf,z).
+derive btree(node(X,X),s(Y))
+  from btree(X,Y).

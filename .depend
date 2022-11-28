@@ -1,0 +1,28 @@
+ast.cmo : \
+    term.cmi
+ast.cmx : \
+    term.cmi
+convert.cmi : \
+    query.cmi \
+    ast.cmo
+inferatrice.cmo : \
+    query.cmi \
+    convert.cmi \
+    ast.cmo
+inferatrice.cmx : \
+    query.cmi \
+    convert.cmi \
+    ast.cmx
+query.cmi : \
+    term.cmi
+term.cmi :
+test.cmo : \
+    unify.cmi \
+    term.cmi \
+    query.cmi
+test.cmx : \
+    unify.cmi \
+    term.cmi \
+    query.cmi
+unify.cmi : \
+    term.cmi

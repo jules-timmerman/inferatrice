@@ -1,0 +1,16 @@
+# L'infératrice sait dériver p().
+# Elle voit immédiatemment que s() n'est pas dérivable.
+
+derive p()
+  from q().
+
+derive p()
+  from r().
+
+derive q().
+
+derive r()
+  from r().
+
+derive s()
+  from e(), r().

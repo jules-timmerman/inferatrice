@@ -9,3 +9,11 @@ val rules :
     La fonction renvoyée peut être appelée quand une solution aura été
     trouvée: elle affiche l'état des variables à ce moment là. *)
 val query : string Ast.Atom.t list -> Query.t * (unit -> unit)
+
+(** Convertie un Ast.Atom en Query.t avec empactage*)
+val convert : string Ast.Atom.t -> Query.t 
+
+
+(** Prends des premices (sous forme d'Ast.Atom) et les AND ensemble pour donner une Query*)
+val premices_to_query : string Ast.Atom.t list -> Query.t
+

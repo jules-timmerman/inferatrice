@@ -8,9 +8,14 @@ type t =
 
 type atom_to_query_t = string -> Term.t list -> t
 
-let pp (format:Format.formatter) (t:t) : unit =
-  failwith("TODO pp")
-
+let rec pp (ppf: Format.formatter) (t: t) : unit =
+  match t with 
+    True -> Format.fprintf ppf "True"
+  | False -> Format.fprintf ppf "False"
+  | Or (t1, t2) -> Format.fprintf ppf "@[(%a || %a)@]" pp t1 pp t2
+  | And (t1, t2) -> Format.fprintf ppf "@[(%a && %a)@]" pp t1 pp t2
+  | Equals (t1, t2) -> Format.fprintf ppf "@[(%a == %a)@]" Term.pp t1 Term.pp t2
+  | Atom (name, l) -> Format.fprintf ppf "@[%s(%a)@]" name Term.pp_args l
 
 (** Valeur par défaut du premier argument de search*)
 let default_search: atom_to_query_t = fun s l ->

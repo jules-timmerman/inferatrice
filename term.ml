@@ -74,10 +74,10 @@ let reset () : unit =
 
 (** Pretty printing *)
 let rec pp_args (ppf: Format.formatter) (args: t list) : unit = 
-    match args with 
-      [] -> Format.fprintf ppf ""
-    | [t] -> Format.fprintf ppf "%a" pp t
-    | t::q -> Format.fprintf ppf "%a, %a" pp t pp_args q
+  match args with 
+    [] -> Format.fprintf ppf ""
+  | [t] -> Format.fprintf ppf "%a" pp t
+  | t::q -> Format.fprintf ppf "%a, %a" pp t pp_args q
 and pp (ppf: Format.formatter) (elem: t) : unit =
   match elem with 
     Var (s) -> Format.fprintf ppf "@[%s@]" s

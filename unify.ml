@@ -6,7 +6,6 @@
   * On ne demande pas forcément que l'état des variables soit inchangé
   * en cas d'échec. *)
 
-  exception Unification_failure
-  let unify (t1: Term.t) (t2: Term.t) : unit =
-    failwith "TODO unify"
-  
+exception Unification_failure
+let unify (t1: Term.t) (t2: Term.t) : unit =
+  failwith "TODO unify"

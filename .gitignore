@@ -2,8 +2,6 @@
 *.cmo
 *.cmx
 *.o
-*.mll
-*.mly
 run_tests
 inferatrice
 .depend

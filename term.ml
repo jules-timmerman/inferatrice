@@ -25,11 +25,17 @@ let global_state: state ref = ref []
     t
   
   (** Egalité syntaxique entre termes et variables. *)
-  let equals (t1: t) (t2: t) : bool =
-    failwith "TODO equals"
+  (** Egalité syntaxique entre termes et variables. *)
   let var_equals (v1: var) (v2: var) : bool = 
     v1 = v2
 
+  let rec equals (t1: t) (t2: t) : bool =
+    match t1, t2 with
+    | Var(x),Var(y) -> var_equals x y
+    | Fun (s1, []), Fun(s2, []) -> s1=s2
+    | Fun (s1, l1), Fun(s2, l2) -> s1=s2 && List.equal equals l1 l2
+    | _ -> false
+  
   (** Constructeurs de termes. *)
   
   (** Création d'un terme construit à partir d'un symbole

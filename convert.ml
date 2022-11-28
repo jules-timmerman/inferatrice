@@ -4,11 +4,12 @@ let convert (a : string Ast.Atom.t) : Query.t =
   let n,l= (Ast.Atom.convert (Term.convert_var) a) in Query.Atom(n,l)
 
 
-(* TODO : A refaire le fold sans le True ? *)
 (** Prends des premices et les AND ensemble pour donner une Query*)
-let premices_to_query ( premices : string Ast.Atom.t list) : Query.t =
-  List.fold_left 
-    (fun (x:Query.t) (y:string Ast.Atom.t) -> Query.And(x, convert y)) Query.True premices
+let rec build_and_query (liste: string Ast.Atom.t list) : Query.t = 
+  match liste with
+    [] -> Query.True
+  | [a] -> convert a
+  | t::q -> Query.And(convert t, build_and_query q)
 
 
 (** Conversion des règles parsées en un [atom_to_query_t] utilisable
@@ -23,11 +24,12 @@ let premices_to_query ( premices : string Ast.Atom.t list) : Query.t =
       (* On OR les premices des règles satisfantes ensembles*)
       List.fold_left 
         (fun (x: Query.t) ((_,y): string Ast.Atom.t * string Ast.Atom.t list) 
-          -> Query.Or(x, premices_to_query y)) 
+          -> Query.Or(x, build_and_query y)) 
         Query.False filtered
 
 (** Conversion d'une liste d'atomes parsés en une requête conjonctive.
     La fonction renvoyée peut être appelée quand une solution aura été
     trouvée: elle affiche l'état des variables à ce moment là. *)
-let query (nom: string Ast.Atom.t list) : Query.t * (unit -> unit) =
-  failwith "TODO query"
+let query (atomes: string Ast.Atom.t list) : Query.t * (unit -> unit) =
+  build_and_query atomes, fun () -> failwith "TODO callback"
+

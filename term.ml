@@ -6,6 +6,8 @@
   type var = string
   type t = Fun of string * t list | Var of var
   type obs_t = t
+
+  let variable_number: int ref = ref 0
   
   (** Modification d'une variable. *)
   let bind (v: var) (t: t) : unit =
@@ -13,32 +15,34 @@
   
   (** Observation d'un terme. *)
   let observe (t: t) : obs_t =
-    failwith "TODO observe"
+    t
   
   (** Egalité syntaxique entre termes et variables. *)
   let equals (t1: t) (t2: t) : bool =
     failwith "TODO equals"
   let var_equals (v1: var) (v2: var) : bool = 
-    failwith "TODO var_equals"
+    v1 = v2
 
   (** Constructeurs de termes. *)
   
   (** Création d'un terme construit à partir d'un symbole
     * de fonction -- ou d'une constante, cas d'arité 0. *)
   let make (nom: string) (termes: t list) : t =
-    failwith "TODO make"
+    Fun(nom, termes)
   
   (** Création d'un terme restreint à une variable. *)
   let var (v: var) : t =
-    failwith "TODO var"
+    Var(v)
   
   (** Création d'une variable fraîche. *)
   let fresh () : var = 
-    failwith "TODO fresh"
+    let name = "Var_" ^ (string_of_int !variable_number) in
+      incr variable_number;
+      name
   
   (** Combinaison des deux précédents. *)
   let fresh_var () : t =
-    failwith "FODO fresh_var"
+    var (fresh ())
   
   (** Manipulation de l'état: sauvegarde, restauration. *)
   

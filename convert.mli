@@ -15,5 +15,5 @@ val convert : string Ast.Atom.t -> Query.t
 
 
 (** Prends des premices (sous forme d'Ast.Atom) et les AND ensemble pour donner une Query*)
-val premices_to_query : string Ast.Atom.t list -> Query.t
+val build_and_query : string Ast.Atom.t list -> Query.t
 

@@ -11,7 +11,6 @@ let rec build_and_query (liste: string Ast.Atom.t list) : Query.t =
   | [a] -> convert a
   | t::q -> Query.And(convert t, build_and_query q)
 
-
 (** Conversion des règles parsées en un [atom_to_query_t] utilisable
   par [Query.search] pour résoudre des requêtes en intégrant les
   règles d'inférence données. *)

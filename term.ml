@@ -15,7 +15,7 @@ let global_state: state ref = ref []
 
 let variable_number: int ref = ref 0
 
-(** Modification d'une variable. 
+(** Modification d'une variable.
     On rajoute en tête de liste pour le nouveau *)
 let bind (v: var) (t: t) : unit =
   global_state := (v,t)::(!global_state)

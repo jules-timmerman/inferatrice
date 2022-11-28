@@ -3,9 +3,9 @@
   * l'on peut instantier.
   * Le type [obs_t] correspond à un terme superficiellement explicité. *)
 
-  type t
-  type var
-  type obs_t = Fun of string * t list | Var of var
+  type var = string
+  type t = Fun of string * t list | Var of var
+  type obs_t = t
   
   (** Modification d'une variable. *)
   let bind (v: var) (t: t) : unit =
@@ -21,8 +21,6 @@
   let var_equals (v1: var) (v2: var) : bool = 
     failwith "TODO var_equals"
 
-  
-  
   (** Constructeurs de termes. *)
   
   (** Création d'un terme construit à partir d'un symbole
@@ -44,7 +42,8 @@
   
   (** Manipulation de l'état: sauvegarde, restauration. *)
   
-  type state
+  type state = (var * t) list
+  let global_state: state = []
   
   (** [save ()] renvoie un descripteur de l'état actuel. *)
   let save () : state =

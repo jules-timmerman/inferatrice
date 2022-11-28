@@ -5,7 +5,7 @@
 
 type t
 type var
-type obs_t = Fun of string * t list | Var of var
+type obs_t = t
 
 (** Modification d'une variable. *)
 val bind : var -> t -> unit

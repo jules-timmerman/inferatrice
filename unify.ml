@@ -22,7 +22,7 @@ let rec look_for (v : var) (t : t) : bool =
   *
   * On ne demande pas forcément que l'état des variables soit inchangé
   * en cas d'échec. *)
-let unify (t1: t) (t2: t) : unit =
+let rec unify (t1: t) (t2: t) : unit =
   if equals t1 t2 then
     () (*déja unifiés*)
   else
@@ -38,6 +38,8 @@ let unify (t1: t) (t2: t) : unit =
       else
         bind y t
     | Fun (s1, l1), Fun (s2, l2) when s1<>s2 -> raise Unification_failure (*Si deux fct différentes : impossible d'unifier*)
+    | Fun (s1, []), Fun (s2, l2) -> raise Unification_failure (*pas le meme nb de paramètres : liste vide*)
+    | Fun (s1, l1), Fun (s2, []) -> raise Unification_failure (*idem*)
     | Fun (s1, hd1::tl1), Fun (s2, hd2::tl2) -> unify hd1 hd2 ; unify (Fun(s1,tl1)) (Fun(s2,tl2)) (*On unifie terme par terme*)
 
 

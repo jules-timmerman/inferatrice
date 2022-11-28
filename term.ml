@@ -35,11 +35,11 @@
     failwith "TODO var"
   
   (** Création d'une variable fraîche. *)
-  let fresh : var = 
+  let fresh () : var = 
     failwith "TODO fresh"
   
   (** Combinaison des deux précédents. *)
-  let fresh_var : t =
+  let fresh_var () : t =
     failwith "FODO fresh_var"
   
   (** Manipulation de l'état: sauvegarde, restauration. *)
@@ -47,7 +47,7 @@
   type state
   
   (** [save ()] renvoie un descripteur de l'état actuel. *)
-  let save : state =
+  let save () : state =
     failwith "TODO save"
   
   (** [restore s] restaure les variables dans l'état décrit par [s]. *)
@@ -58,7 +58,7 @@
       Aucun impact sur les termes déja créés, mais garantit que
       les futurs usages seront comme dans un module fraichement
       initialisé. *)
-  let reset : unit =
+  let reset () : unit =
     failwith "TODO reset"
   
   (** Pretty printing *)

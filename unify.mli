@@ -1,3 +1,11 @@
+open Term
+
+exception Unification_failure
+
+(*Return true si v est une variable de t*)
+val look_for : var -> t -> bool
+
+
 (** La fonction unify prend deux termes et effectue des instantiations
   * pour les unifier. Par effet de bord elle rend les termes égaux,
   * si possible; sinon elle lève l'exception Unification_failure.
@@ -5,6 +13,4 @@
   *
   * On ne demande pas forcément que l'état des variables soit inchangé
   * en cas d'échec. *)
-
-exception Unification_failure
-val unify : Term.t -> Term.t -> unit
+val unify : t -> t -> unit

@@ -78,3 +78,5 @@ let global_state: state ref = ref []
   let pp (fmt: Format.formatter) (elem: t) : unit =
     failwith "TODO pp"
   
+
+  let convert_var s = fresh_var ()

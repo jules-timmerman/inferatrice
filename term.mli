@@ -53,3 +53,7 @@ val reset : unit -> unit
 (** Pretty printing *)
 
 val pp : Format.formatter -> t -> unit
+
+
+(** Fonction de translation pour Ast *)
+val convert_var : 'a -> t

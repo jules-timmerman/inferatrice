@@ -20,7 +20,7 @@ let rec build_and_query (liste: string Ast.Atom.t list) : Query.t =
       let terms_length = List.length terms in
       let filtered = List.filter (fun (Ast.Atom.Atom(s,l),_) -> s = name && List.length l = terms_length) rules in
       
-      (* On OR les premices des règles satisfantes ensembles*)
+      (* On OR les premices des règles satisfantes ensembles en les convertissant en Query*)
       List.fold_left 
         (fun (x: Query.t) ((_,y): string Ast.Atom.t * string Ast.Atom.t list) 
           -> Query.Or(x, build_and_query y)) 

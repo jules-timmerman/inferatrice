@@ -52,7 +52,10 @@ val reset : unit -> unit
 
 (** Pretty printing *)
 
+val pp_args: Format.formatter -> t list -> unit
 val pp : Format.formatter -> t -> unit
+
+val test_print : unit -> unit
 
 
 (** Fonction de translation pour Ast *)

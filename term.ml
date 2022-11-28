@@ -25,7 +25,6 @@ let global_state: state ref = ref []
     t
   
   (** Egalité syntaxique entre termes et variables. *)
-  (** Egalité syntaxique entre termes et variables. *)
   let var_equals (v1: var) (v2: var) : bool = 
     v1 = v2
 
@@ -74,9 +73,17 @@ let global_state: state ref = ref []
     global_state := []
   
   (** Pretty printing *)
-  
-  let pp (fmt: Format.formatter) (elem: t) : unit =
-    failwith "TODO pp"
-  
+let rec pp_args (ppf: Format.formatter) (args: t list) : unit = 
+    match args with 
+      [] -> Format.fprintf ppf ""
+    | [t] -> Format.fprintf ppf "%a" pp t
+    | t::q -> Format.fprintf ppf "%a, %a" pp t pp_args q
+and pp (ppf: Format.formatter) (elem: t) : unit =
+  match elem with 
+    Var (s) -> Format.fprintf ppf "@[%s@]" s
+  | Fun (f, args) -> Format.fprintf ppf "@[%s(%a)@]" f pp_args args
 
-  let convert_var s = fresh_var ()
+let test_print () : unit = 
+  Format.printf "%a" pp (Fun ("f", [Fun ("g", [Var "X"]); Fun ("h", [Var "y"]); Var "Z"]))
+
+let convert_var s = fresh_var ()

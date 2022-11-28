@@ -3,9 +3,11 @@
   * l'on peut instantier.
   * Le type [obs_t] correspond à un terme superficiellement explicité. *)
 
-type t
-type var
+type var = string
+type t = Fun of string * t list | Var of var
 type obs_t = t
+
+type state = (var * t) list
 
 (** Modification d'une variable. *)
 val bind : var -> t -> unit
@@ -35,8 +37,6 @@ val fresh : unit -> var
 val fresh_var : unit -> t
 
 (** Manipulation de l'état: sauvegarde, restauration. *)
-
-type state
 
 (** [save ()] renvoie un descripteur de l'état actuel. *)
 val save : unit -> state

@@ -13,15 +13,15 @@ let pp (format:Format.formatter) (t:t) : unit =
 
 
 (** Valeur par défaut du premier argument de search*)
-let defaultSearch: atom_to_query_t = fun s l ->
+let default_search: atom_to_query_t = fun s l ->
   failwith "TODO defaultSearch"
 
-let search ?(atom_to_query = defaultSearch) (cont:(unit -> 'a)) (t:t) : unit =
+let search ?(atom_to_query = default_search) (cont:(unit -> 'a)) (t:t) : unit =
   failwith("TODO search")
 
-let defaultHas: atom_to_query_t = fun s l ->
+let default_has: atom_to_query_t = fun s l ->
   failwith "TODO defaultHas"
 
-let has_solution ?(atom_to_query = defaultHas)  (t:t) : bool =
+let has_solution ?(atom_to_query = default_has)  (t:t) : bool =
   failwith("TODO has_solution")
 

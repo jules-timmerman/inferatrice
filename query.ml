@@ -13,11 +13,13 @@ let pp (format:Format.formatter) (t:t) : unit =
 
 
 (** Valeur par défaut du premier argument de search*)
-let default = failwith("TODO search2")
+let defaultSearch = failwith("TODO search2")
 
-let search = ?(atom_to_query = default) (cont:(unit -> 'a)) (t:t) : unit =
+let search ?(atom_to_query = defaultSearch) (cont:(unit -> 'a)) (t:t) : unit =
   failwith("TODO search")
 
-let has_solution = (?atom_to_query:atom_to_query_t)  (t:t) : bool =
+let defaultHas = failwith("TODO has_solution2")
+
+let has_solution ?(atom_to_query = defaultHas)  (t:t) : bool =
   failwith("TODO has_solution")
 

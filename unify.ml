@@ -3,12 +3,28 @@ open Term
 exception Unification_failure
 
 
-(*Return true si v est une variable de t*)
-let rec look_for (v : var) (t : t) : bool =
-  match t with
-  | Var(x) -> var_equals x v
-  | Fun (s, []) -> false
-  | Fun (s, hd::tl) -> look_for v hd || look_for v (Fun (s, tl))
+(*Return true si variable non liée à une fct, false sinon*)
+let rec not_bound (v: var) : bool =
+  (
+  try
+    let new_v = (lookup v None) in
+    match new_v with
+    | Var(x) -> not_bound x
+    | Fun(s,ts) -> false
+  with
+    Lookup_failure ->  true
+  )
+
+
+(*Return true si la variable est déja dans le terme, false sinon*)
+  let rec look_for (v : var) (t : t) : bool = 
+    if not_bound v then
+      match t with
+      | Var(x) -> var_equals x v
+      | Fun (s, []) -> false
+      | Fun (s, hd::tl) -> look_for v hd || look_for v (Fun (s, tl))
+    else true
+  
 
 
 (** La fonction unify prend deux termes et effectue des instantiations

@@ -15,7 +15,7 @@ val bind : var -> t -> unit
 exception Lookup_failure
 
 (** Recherche d'une variable dans un environnement *)
-val lookup : var -> state -> t
+val lookup : var -> state option -> t
 
 (** Observation d'un terme. *)
 val observe : t -> obs_t

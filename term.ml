@@ -22,10 +22,13 @@ let bind (v: var) (t: t) : unit =
   global_state := (v,t)::(!global_state)
 
 (** Recherche d'une variable dans un environnement *)
-let rec lookup (v: var) (s: state) : t =
-  match s with
-    [] -> raise Lookup_failure
-  | (name, value)::q -> if name = v then value else lookup v q
+let lookup (v: var) (s: state option) : t =
+  let state_to_search = Option.value s ~default:!global_state in
+  let rec search l =
+    match l with
+      [] -> raise Lookup_failure
+    | (name, value)::q -> if name = v then value else search q
+  in search state_to_search
 
 (** Observation d'un terme. *)
 let observe (t: t) : obs_t =
@@ -33,7 +36,7 @@ let observe (t: t) : obs_t =
 
 (** Egalité syntaxique entre termes et variables. *)
 let rec var_equals (v1: var) (v2: var) : bool = 
-  v1 = v2 || (try equals (lookup v1 !global_state) (lookup v2 !global_state) with Lookup_failure -> false)
+  v1 = v2 || (try equals (lookup v1 None) (lookup v2 None) with Lookup_failure -> false)
 
 and equals (t1: t) (t2: t) : bool =
   match t1, t2 with
@@ -43,14 +46,14 @@ and equals (t1: t) (t2: t) : bool =
   | Var(x), y -> 
     (
       try
-        lookup x !global_state = y
+        lookup x None = y
       with
         Lookup_failure -> false
     )
   | x, Var(y) ->
     (
       try
-        lookup y !global_state = x
+        lookup y None = x
       with
         Lookup_failure -> false
     )
@@ -101,7 +104,14 @@ let rec pp_args (ppf: Format.formatter) (args: t list) : unit =
   | t::q -> Format.fprintf ppf "%a, %a" pp t pp_args q
 and pp (ppf: Format.formatter) (elem: t) : unit =
   match elem with 
-    Var (s) -> Format.fprintf ppf "@[%s@]" s
+    Var (s) -> 
+    (
+      try 
+        let value = (lookup s None) in
+          Format.fprintf ppf "@[(%s = %a)@]" s pp value
+      with
+        Lookup_failure -> Format.fprintf ppf "@[%s@]" s
+    )   
   | Fun (f, args) -> Format.fprintf ppf "@[%s(%a)@]" f pp_args args
 
 let test_print () : unit = 

@@ -30,5 +30,4 @@ let rules (rules: (string Ast.Atom.t * string Ast.Atom.t list) list) : Query.ato
     La fonction renvoyée peut être appelée quand une solution aura été
     trouvée: elle affiche l'état des variables à ce moment là. *)
 let query (atomes: string Ast.Atom.t list) : Query.t * (unit -> unit) =
-  build_and_query atomes, fun () -> failwith "TODO callback"
-
+  build_and_query atomes, fun () -> Format.printf "%a" Term.pp_state None

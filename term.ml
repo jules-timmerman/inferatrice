@@ -19,9 +19,13 @@ let variable_number: int ref = ref 0
 (** Modification d'une variable.
     On rajoute en tête de liste pour le nouveau *)
 let bind (v: var) (t: t) : unit =
+  Format.printf "Bind appelé\n";
   global_state := (v,t)::(!global_state)
 
-(** Recherche d'une variable dans un environnement *)
+(** Recherche d'une variable dans un environnement 
+    None : dans l'environnement actuel
+    Some(s) : dans l'environnement s 
+    Renvoie la valeur, ou raise Lookup_failure sinon *)
 let lookup (v: var) (s: state option) : t =
   let state_to_search = Option.value s ~default:!global_state in
   let rec search l =
@@ -104,17 +108,33 @@ let rec pp_args (ppf: Format.formatter) (args: t list) : unit =
   | t::q -> Format.fprintf ppf "%a, %a" pp t pp_args q
 and pp (ppf: Format.formatter) (elem: t) : unit =
   match elem with 
-    Var (s) -> 
+    Var (s) ->
     (
       try 
         let value = (lookup s None) in
           Format.fprintf ppf "@[(%s = %a)@]" s pp value
       with
         Lookup_failure -> Format.fprintf ppf "@[%s@]" s
-    )   
+    )
   | Fun (f, args) -> Format.fprintf ppf "@[%s(%a)@]" f pp_args args
 
 let test_print () : unit = 
   Format.printf "%a" pp (Fun ("f", [Fun ("g", [Var "X"]); Fun ("h", [Var "y"]); Var "Z"]))
+
+let pp_state (ppf: Format.formatter) (s: state option) : unit = 
+  let rec pp_state_rec (ppf: Format.formatter) (s: state) = match s with
+    [] -> Format.fprintf ppf ""
+  | (n, v)::q -> Format.fprintf ppf "@t@[%s -> %a@]@.%a" n pp v pp_state_rec q
+  in let st = Option.value s ~default:(!global_state) in
+    Format.fprintf ppf "{@.";
+    Format.fprintf ppf "@[%a@]}" pp_state_rec st 
+(*
+let pp_state (ppf: Format.formatter) (s: state option) : unit =
+  ignore (ppf, s);
+  let rec parcours s = match s with
+    [] -> ()
+  | (n, v)::q -> Format.printf "\t%s -> %a\n" n pp v; parcours q
+    in parcours !global_state
+*)
 
 let convert_var s = fresh_var ()

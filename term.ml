@@ -20,6 +20,14 @@ let variable_number: int ref = ref 0
 let bind (v: var) (t: t) : unit =
   global_state := (v,t)::(!global_state)
 
+
+exception Lookup_failure
+
+(** Recherche d'une variable dans un environnement *)
+let rec lookup (v: var) (s: state) : t =
+  match s with
+    [] -> raise Lookup_failure
+  | (name, value)::q -> if name = v then value else lookup v q
 (** Observation d'un terme. *)
 let observe (t: t) : obs_t =
   t
@@ -33,7 +41,20 @@ let rec equals (t1: t) (t2: t) : bool =
   | Var(x),Var(y) -> var_equals x y
   | Fun (s1, []), Fun(s2, []) -> s1=s2
   | Fun (s1, l1), Fun(s2, l2) -> s1=s2 && List.equal equals l1 l2
-  | _ -> false
+  | Var(x), y -> 
+    (
+      try
+        lookup x !global_state = y
+      with
+        Lookup_failure -> false
+    )
+  | x, Var(y) ->
+    (
+      try
+        lookup y !global_state = x
+      with
+        Lookup_failure -> false
+    )
 
 (** Constructeurs de termes. *)
 
@@ -70,7 +91,8 @@ let restore (s: state) : unit =
     les futurs usages seront comme dans un module fraichement
     initialisé. *)
 let reset () : unit =
-  global_state := []
+  global_state := [];
+  variable_number := 0
 
 (** Pretty printing *)
 let rec pp_args (ppf: Format.formatter) (args: t list) : unit = 

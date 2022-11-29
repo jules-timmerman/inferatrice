@@ -23,7 +23,7 @@ let rec unify (t1: t) (t2: t) : unit =
     () (* déja unifiés *)
   else
     match observe t1, observe t2 with
-    | Var(x),t -> (* Cas une variable et un terme : on unifie si la variable n'est pas dans t *)
+    | Var x, t -> (* Cas une variable et un terme : on unifie si la variable n'est pas dans t *)
       if look_for x t then 
         raise Unification_failure
       else

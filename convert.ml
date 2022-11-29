@@ -14,17 +14,17 @@ let rec build_and_query (liste: string Ast.Atom.t list) : Query.t =
 (** Conversion des règles parsées en un [atom_to_query_t] utilisable
   par [Query.search] pour résoudre des requêtes en intégrant les
   règles d'inférence données. *)
-  let rules (rules: (string Ast.Atom.t * string Ast.Atom.t list) list) : Query.atom_to_query_t =
-    fun (name:string) (terms:Term.t list) -> 
-      (* On garde les règles qui ont le même nom et le même cardinal que l'atome d'entrée *)
-      let terms_length = List.length terms in
-      let filtered = List.filter (fun (Ast.Atom.Atom(s,l),_) -> s = name && List.length l = terms_length) rules in
-      
-      (* On OR les premices des règles satisfantes ensembles en les convertissant en Query*)
-      List.fold_left 
-        (fun (x: Query.t) ((_,y): string Ast.Atom.t * string Ast.Atom.t list) 
-          -> Query.Or(x, build_and_query y)) 
-        Query.False filtered
+let rules (rules: (string Ast.Atom.t * string Ast.Atom.t list) list) : Query.atom_to_query_t =
+  fun (name:string) (terms:Term.t list) -> 
+    (* On garde les règles qui ont le même nom et le même cardinal que l'atome d'entrée *)
+    let terms_length = List.length terms in
+    let filtered = List.filter (fun (Ast.Atom.Atom(s,l),_) -> s = name && List.length l = terms_length) rules in
+    
+    (* On OR les premices des règles satisfantes ensembles en les convertissant en Query*)
+    List.fold_left 
+      (fun (x: Query.t) ((_,y): string Ast.Atom.t * string Ast.Atom.t list) 
+        -> Query.Or(x, build_and_query y)) 
+      Query.False filtered
 
 (** Conversion d'une liste d'atomes parsés en une requête conjonctive.
     La fonction renvoyée peut être appelée quand une solution aura été

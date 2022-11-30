@@ -7,8 +7,6 @@ type var = string
 type t = Fun of string * t list | Var of var
 type obs_t = t
 
-exception Lookup_failure
-
 (** Manipulation de l'état: sauvegarde, restauration. *)
 
 type state = (var * t) list
@@ -22,6 +20,15 @@ let bind (v: var) (t: t) : unit =
   Format.printf "Bind appelé\n";
   global_state := (v,t)::(!global_state)
 
+(** Vérifie si une variable existe dans l'environnement *)
+let existe (v: var) (s: state option) : bool = 
+  let state_to_search = Option.value s ~default:!global_state in
+  let rec search l = 
+    match l with
+      [] -> false
+    | (name, _)::q -> name = v || search q
+  in search state_to_search
+
 (** Recherche d'une variable dans un environnement 
     None : dans l'environnement actuel
     Some(s) : dans l'environnement s 
@@ -30,7 +37,7 @@ let lookup (v: var) (s: state option) : t =
   let state_to_search = Option.value s ~default:!global_state in
   let rec search l =
     match l with
-      [] -> raise Lookup_failure
+      [] -> failwith "Variable existe pas, faut call existe avant"
     | (name, value)::q -> if name = v then value else search q
   in search state_to_search
 
@@ -40,7 +47,7 @@ let observe (t: t) : obs_t =
 
 (** Egalité syntaxique entre termes et variables. *)
 let rec var_equals (v1: var) (v2: var) : bool = 
-  v1 = v2 || (try equals (lookup v1 None) (lookup v2 None) with Lookup_failure -> false)
+  v1 = v2 || (if not (existe v1 None) || not (existe v1 None) then false else equals (lookup v1 None) (lookup v2 None)) 
 
 and list_equals (b : bool) (l1 : t list) (l2 : t list) : bool =
   if not b then 
@@ -52,25 +59,16 @@ and list_equals (b : bool) (l1 : t list) (l2 : t list) : bool =
     | _, [] -> false
     | hd1::tl1, hd2::tl2 -> list_equals (b && equals hd1 hd2) tl1 tl2
 
-
 and equals (t1: t) (t2: t) : bool =
   match t1, t2 with
-  | Var(x),Var(y) -> var_equals x y
+  | Var(x), Var(y) -> var_equals x y
   | Fun (s1, l1), Fun(s2, l2) -> s1 = s2 && list_equals true l1 l2
-  | Var(x), y -> 
-    (
-      try
-        lookup x None = y
-      with
-        Lookup_failure -> false
-    )
-  | x, Var(y) ->
-    (
-      try
-        lookup y None = x
-      with
-        Lookup_failure -> false
-    )
+  | Var(x), y when (existe x None) -> 
+      lookup x None = y
+  | x, Var(y) when existe y None ->
+      lookup y None = x
+  | _ -> false
+      
 
 (** Constructeurs de termes. *)
 
@@ -119,13 +117,11 @@ let rec pp_args (ppf: Format.formatter) (args: t list) : unit =
 and pp (ppf: Format.formatter) (elem: t) : unit =
   match elem with 
     Var (s) ->
-    (
-      try 
+    if existe s None then
         let value = (lookup s None) in
-          Format.fprintf ppf "@[(%s = %a)@]" s pp value
-      with
-        Lookup_failure -> Format.fprintf ppf "@[%s@]" s
-    )
+          Format.fprintf ppf "@[(%s = %a)@]" s pp value 
+    else
+        Format.fprintf ppf "@[%s@]" s
   | Fun (f, args) -> Format.fprintf ppf "@[%s(%a)@]" f pp_args args
 
 let test_print () : unit = 
@@ -134,7 +130,7 @@ let test_print () : unit =
 let pp_state (ppf: Format.formatter) (s: state option) : unit = 
   let rec pp_state_rec (ppf: Format.formatter) (s: state) = match s with
     [] -> Format.fprintf ppf ""
-  | (n, v)::q -> Format.fprintf ppf "@t@[%s -> %a@]@.%a" n pp v pp_state_rec q
+  | (n, v)::q -> Format.fprintf ppf "\t@[%s -> %a@]@.%a" n pp v pp_state_rec q
   in let st = Option.value s ~default:(!global_state) in
     Format.fprintf ppf "{@.";
     Format.fprintf ppf "@[%a@]}" pp_state_rec st 

@@ -12,8 +12,8 @@ type state = (var * t) list
 (** Modification d'une variable. *)
 val bind : var -> t -> unit
 
-exception Lookup_failure
-
+(** Vérifie si une variable existe dans l'environnement *)
+val existe : var -> state option -> bool
 (** Recherche d'une variable dans un environnement *)
 val lookup : var -> state option -> t
 

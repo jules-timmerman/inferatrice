@@ -19,6 +19,7 @@ let rec look_for (v : var) (t : t) : bool =
   * en cas d'échec. *)
 let rec unify (t1: t) (t2: t) : unit =
   match observe t1, observe t2 with
+  | Var x, Var y when var_equals x y -> ()
   | Var x, t -> (* Cas une variable et un terme : on unifie si la variable n'est pas dans t *)
     if look_for x t then
       raise Unification_failure

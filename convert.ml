@@ -65,5 +65,4 @@ let rules (rules: (string Ast.Atom.t * string Ast.Atom.t list) list) : Query.ato
     trouvée: elle affiche l'état des variables à ce moment là. *)
 let query (atomes: string Ast.Atom.t list) : Query.t * (unit -> unit) =
   build_and_query atomes, 
-  (* fun () -> Format.printf "%a" Term.pp_state None *)
-  fun () -> Term.pp_state (Format.std_formatter) None
+  fun () -> Format.printf "%a" Term.pp_state None

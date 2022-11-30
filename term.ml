@@ -119,9 +119,9 @@ and pp (ppf: Format.formatter) (elem: t) : unit =
     Var (s) ->
     if existe s None then
         let value = (lookup s None) in
-          Format.fprintf ppf "@[(%s = %a)@]" s pp value 
+          Format.fprintf ppf "@[<h>(%s = %a)@]" s pp value 
     else
-        Format.fprintf ppf "@[%s@]" s
+        Format.fprintf ppf "@[<h>%s@]" s
   | Fun (f, args) -> Format.fprintf ppf "@[%s(%a)@]" f pp_args args
 
 let test_print () : unit = 
@@ -130,10 +130,10 @@ let test_print () : unit =
 let pp_state (ppf: Format.formatter) (s: state option) : unit = 
   let rec pp_state_rec (ppf: Format.formatter) (s: state) = match s with
     [] -> Format.fprintf ppf ""
-  | (n, v)::q -> Format.fprintf ppf "\t@[%s -> %a@]@.%a" n pp v pp_state_rec q
+  | (n, v)::q -> Format.fprintf ppf "\t@[<h>%s -> %a@]@.%a" n pp v pp_state_rec q
   in let st = Option.value s ~default:(!global_state) in
     Format.fprintf ppf "{@.";
-    Format.fprintf ppf "@[%a@]}" pp_state_rec st 
+    Format.fprintf ppf "@[<h>%a@]}" pp_state_rec st 
 (*
 let pp_state (ppf: Format.formatter) (s: state option) : unit =
   ignore (ppf, s);

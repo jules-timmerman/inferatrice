@@ -12,10 +12,10 @@ let rec pp (ppf: Format.formatter) (t: t) : unit =
   match t with 
     True -> Format.fprintf ppf "True"
   | False -> Format.fprintf ppf "False"
-  | Or (t1, t2) -> Format.fprintf ppf "@[(%a || %a)@]" pp t1 pp t2
-  | And (t1, t2) -> Format.fprintf ppf "@[(%a && %a)@]" pp t1 pp t2
-  | Equals (t1, t2) -> Format.fprintf ppf "@[(%a == %a)@]" Term.pp t1 Term.pp t2
-  | Atom (name, l) -> Format.fprintf ppf "@[%s(%a)@]" name Term.pp_args l
+  | Or (t1, t2) -> Format.fprintf ppf "@[<h>(%a || %a)@]" pp t1 pp t2
+  | And (t1, t2) -> Format.fprintf ppf "@[<h>(%a && %a)@]" pp t1 pp t2
+  | Equals (t1, t2) -> Format.fprintf ppf "@[<h>(%a == %a)@]" Term.pp t1 Term.pp t2
+  | Atom (name, l) -> Format.fprintf ppf "@[<h>%s(%a)@]" name Term.pp_args l
 
 (** Valeur par défaut du premier argument de search*)
 let default_search: atom_to_query_t = fun s l ->
@@ -26,8 +26,8 @@ let default_has: atom_to_query_t = fun s l ->
   False
 
 
-let rec has_solution ?(atom_to_query = default_has)  (t:t) : bool = 
-  Format.printf "\n\nTraitement de la query : " ; pp Format.std_formatter t ;
+(* let rec has_solution ?(atom_to_query = default_has)  (t:t) : bool = 
+  Format.fprintf Format.std_formatter "\n\nTraitement de la query : \n%a\n" pp t ;
   match t with
     | True -> true
     | False -> false
@@ -53,11 +53,46 @@ let rec has_solution ?(atom_to_query = default_has)  (t:t) : bool =
       try (Unify.unify t1 t2 ; true) with
         |Unify.Unification_failure -> false
     end
-    | Atom(n,l) -> let q = atom_to_query n l in has_solution ~atom_to_query:atom_to_query q
+    | Atom(n,l) -> let q = atom_to_query n l in has_solution ~atom_to_query:atom_to_query q *)
 
-let search ?(atom_to_query = default_search) (cont:(unit -> 'a)) (t:t) : unit =
+exception End
+
+let rec search ?(atom_to_query = default_search) (cont:(unit -> 'a)) (t:t) : unit =
+  Format.fprintf Format.std_formatter "\n\nTraitement de la query : \n%a\n" pp t ;
+  let f = search ~atom_to_query:atom_to_query in
+  try 
+    begin
+      match t with
+        | True -> ignore (cont ())
+        | False -> ()
+        | And(t1,t2) ->
+          f (fun () -> (f cont t2) ; raise End) t1 
+        | Or(t1, t2) ->
+          let s = Term.save () in
+          f cont t1 ;
+          Term.restore s ; 
+          f cont t2
+        | Equals (t1, t2) ->
+          begin
+            try (Unify.unify t1 t2 ; ignore (cont ())) with
+              |Unify.Unification_failure -> ()
+          end
+        | Atom(n, l) -> let q = atom_to_query n l in f cont q
+    end
+  with
+    | End -> ()
+
+
+
+exception Found
+let has_solution ?(atom_to_query = default_has)  (t:t) : bool =
+  try search ~atom_to_query:atom_to_query (fun () -> raise Found) t ; false
+    with 
+    | Found -> true
+
+(* let search ?(atom_to_query = default_search) (cont:(unit -> 'a)) (t:t) : unit =
   if (has_solution ~atom_to_query:atom_to_query t) then
     ignore (cont ())
   else(
     Format.printf "Pas de solution...\n"
-  )
+  ) *)

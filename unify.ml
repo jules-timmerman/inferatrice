@@ -5,7 +5,7 @@ exception Unification_failure
 (*Return true si la variable est déja dans le terme, false sinon*)
 let rec look_for (v : var) (t : t) : bool = 
     match t with
-    | Var(x) -> var_equals x v (*|| (if (existe x None) then (look_for x (Var(v)) ) else false)*)
+    | Var(x) -> var_equals x v || (if (existe x None) then (look_for v (lookup x None) ) else false)
     | Fun (s, []) -> false
     | Fun (s, hd::tl) -> look_for v hd || look_for v (Fun (s, tl))
 

@@ -3,8 +3,6 @@ open Term
 exception Unification_failure
 
 
-(*Return true si variable non liée à une fct, false sinon*)
-val not_bound : var -> bool 
 
 
 (*Return true si v est une variable de t*)

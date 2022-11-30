@@ -42,11 +42,21 @@ let observe (t: t) : obs_t =
 let rec var_equals (v1: var) (v2: var) : bool = 
   v1 = v2 || (try equals (lookup v1 None) (lookup v2 None) with Lookup_failure -> false)
 
+and list_equals (b : bool) (l1 : t list) (l2 : t list) : bool =
+  if not b then 
+    false
+  else
+    match l1,l2 with
+    | [],[] -> true
+    | [], _ -> false
+    | _, [] -> false
+    | hd1::tl1, hd2::tl2 -> list_equals (b && equals hd1 hd2) tl1 tl2
+
+
 and equals (t1: t) (t2: t) : bool =
   match t1, t2 with
   | Var(x),Var(y) -> var_equals x y
-  | Fun (s1, []), Fun(s2, []) -> s1 = s2
-  | Fun (s1, l1), Fun(s2, l2) -> s1 = s2 && List.equal equals l1 l2
+  | Fun (s1, l1), Fun(s2, l2) -> s1 = s2 && list_equals true l1 l2
   | Var(x), y -> 
     (
       try

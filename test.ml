@@ -90,18 +90,22 @@ let unify_tests = "Unify", [ (* {{{ *)
     end ;
 
     "Bin-tree", `Quick, begin fun () ->
-      let node x y = Term.make "n" [x;y] in
+      try begin 
+        let node x y = Term.make "n" [x;y] in
 
-      let x = Term.fresh_var () in
-      let y = Term.fresh_var () in
-      let rec tree t n =
-        if n = 0 then t else tree (node t t) (n-1)
-      in
-      let n = 10_000_000 in
-      let t1 = tree x n in
-      let t2 = tree y n in
-      Unify.unify t1 t2
+        let x = Term.fresh_var () in
+        let y = Term.fresh_var () in
+        let rec tree t n =
+          if n = 0 then t else tree (node t t) (n-1)
+        in
+        let n = 10_000_000 in
+        let t1 = tree x n in
+        let t2 = tree y n in
+        Unify.unify t1 t2
+      end with 
+        Stack_overflow -> raise Stack_overflow
     end
+
 
 ] (* }}} *)
 

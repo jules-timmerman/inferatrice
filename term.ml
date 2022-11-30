@@ -122,7 +122,7 @@ and pp (ppf: Format.formatter) (elem: t) : unit =
           Format.fprintf ppf "@[<h>(%s = %a)@]" s pp value 
     else
         Format.fprintf ppf "@[<h>%s@]" s
-  | Fun (f, args) -> Format.fprintf ppf "@[%s(%a)@]" f pp_args args
+  | Fun (f, args) -> Format.fprintf ppf "@[<h>%s(%a)@]" f pp_args args
 
 let test_print () : unit = 
   Format.printf "%a" pp (Fun ("f", [Fun ("g", [Var "X"]); Fun ("h", [Var "y"]); Var "Z"]))

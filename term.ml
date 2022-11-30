@@ -14,11 +14,6 @@ let global_state: state ref = ref []
 
 let variable_number: int ref = ref 0
 
-(** Modification d'une variable.
-    On rajoute en tête de liste pour le nouveau *)
-let bind (v: var) (t: t) : unit =
-  Format.printf "Bind appelé\n";
-  global_state := (v,t)::(!global_state)
 
 (** Vérifie si une variable existe dans l'environnement *)
 let existe (v: var) (s: state option) : bool = 
@@ -29,10 +24,16 @@ let existe (v: var) (s: state option) : bool =
     | (name, _)::q -> name = v || search q
   in search state_to_search
 
+(** Modification d'une variable.
+    On rajoute en tête de liste pour le nouveau *)
+let bind (v: var) (t: t) : unit =
+  Format.printf "Bind appelé : %s\n" v;
+  global_state := (v,t)::(!global_state)
+
 (** Recherche d'une variable dans un environnement 
     None : dans l'environnement actuel
     Some(s) : dans l'environnement s 
-    Renvoie la valeur, ou raise Lookup_failure sinon *)
+    Renvoie la valeur, ou raise fail sinon *)
 let lookup (v: var) (s: state option) : t =
   let state_to_search = Option.value s ~default:!global_state in
   let rec search l =
@@ -47,7 +48,8 @@ let observe (t: t) : obs_t =
 
 (** Egalité syntaxique entre termes et variables. *)
 let rec var_equals (v1: var) (v2: var) : bool = 
-  v1 = v2 || (if not (existe v1 None) || not (existe v1 None) then false else equals (lookup v1 None) (lookup v2 None)) 
+  let ex1 = existe v1 None and ex2 = existe v2 None in
+  v1 = v2 || (ex1 && equals (lookup v1 None) (Var v2)) || (ex2 && equals (lookup v2 None) (Var v1)) || (ex1 && ex2 && equals (lookup v1 None) (lookup v2 None))     
 
 and list_equals (b : bool) (l1 : t list) (l2 : t list) : bool =
   if not b then 

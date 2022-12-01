@@ -2,7 +2,7 @@ open Term
 
 exception Unification_failure
 
-(*Supprime les couples de termes déja unifiés des listes de termes qui suivent *)
+(**Supprime les couples de termes déja unifiés des listes de termes qui suivent *)
 let rec remove_couple (t1 : t) (t2 : t) (l1 : t list) (l2 : t list) : (t list * (t list))=
   match l1, l2 with 
   | [], l -> [],l
@@ -11,7 +11,7 @@ let rec remove_couple (t1 : t) (t2 : t) (l1 : t list) (l2 : t list) : (t list * 
   | hd1::tl1, hd2::tl2 when (equals t1 hd2 && equals t2 hd1)-> remove_couple t1 t2 tl1 tl2
   | hd1::tl1, hd2::tl2 -> let (a,b) = remove_couple t1 t2 tl1 tl2 in (hd1::a, hd2::b)
 
-(*Supprime le terme déja unifié de la liste de termes qui suit *)
+(**Supprime le terme déja unifié de la liste de termes qui suit *)
 let rec remove (t : t) (l : t list) : t list = 
   match l with
   | [] -> []
@@ -19,7 +19,7 @@ let rec remove (t : t) (l : t list) : t list =
   | hd::tl -> hd::(remove t tl)
 
 
-(*Return true si la variable est déja dans le terme, false sinon*)
+(**Return true si la variable est déja dans le terme, false sinon*)
 let rec look_for (v : var) (t : t) : bool = 
   match t with
   | Var(x) -> var_equals x v || (if (existe x None) then (look_for v (lookup x None) ) else false)
@@ -42,10 +42,13 @@ let rec unify (t1: t) (t2: t) : unit =
       raise Unification_failure
     else
         (if existe x None then 
-          (if lookup x None = t then 
+          let t_bis = lookup x None in
+          (
+            (if t_bis = t then 
             ()
-          else 
-            raise Unification_failure)
+          else
+            unify t_bis t)
+          )
         else 
           bind x t)
   | t, Var y -> unify t2 t1(* Revient au cas précédent *)

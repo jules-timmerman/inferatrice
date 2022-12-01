@@ -17,6 +17,7 @@ let variable_number: int ref = ref 0
 
 (** Vérifie si une variable existe dans l'environnement *)
 let existe (v: var) (s: state option) : bool = 
+  assert (v != "");
   let state_to_search = Option.value s ~default:!global_state in
   let rec search l = 
     match l with
@@ -27,6 +28,7 @@ let existe (v: var) (s: state option) : bool =
 (** Modification d'une variable.
     On rajoute en tête de liste pour le nouveau *)
 let bind (v: var) (t: t) : unit =
+  assert (v != "");
   Format.printf "Bind appelé : %s\n" v;
   global_state := (v,t)::(!global_state)
 
@@ -35,12 +37,13 @@ let bind (v: var) (t: t) : unit =
     Some(s) : dans l'environnement s 
     Renvoie la valeur, ou raise fail sinon *)
 let lookup (v: var) (s: state option) : t =
+  assert (v != "");
   let state_to_search = Option.value s ~default:!global_state in
   let rec search l =
     match l with
       [] -> failwith "Variable existe pas, faut call existe avant"
     | (name, value)::q -> if name = v then value else search q
-  in search state_to_search
+  in assert (existe v s) (* Au cas où *); search state_to_search
 
 (** Observation d'un terme. *)
 let observe (t: t) : obs_t =
@@ -49,9 +52,11 @@ let observe (t: t) : obs_t =
 (** Egalité syntaxique entre termes et variables. *)
 let rec var_equals (v1: var) (v2: var) : bool = 
   let ex1 = existe v1 None and ex2 = existe v2 None in
-  v1 = v2 || (ex1 && equals (lookup v1 None) (Var v2)) || (ex2 && equals (lookup v2 None) (Var v1)) || (ex1 && ex2 && equals (lookup v1 None) (lookup v2 None))     
+  v1 = v2 || 
+  (ex1 && equals (lookup v1 None) (Var v2)) || 
+  (ex2 && equals (lookup v2 None) (Var v1)) || 
+  (ex1 && ex2 && equals (lookup v1 None) (lookup v2 None))     
 
-      
 and equals (t1:t) (t2:t) : bool =
   let rec aux (b : bool) (t1 : t) (t2 : t) : bool =
     match t1, t2 with
@@ -78,6 +83,7 @@ and equals (t1:t) (t2:t) : bool =
 (** Création d'un terme construit à partir d'un symbole
   * de fonction -- ou d'une constante, cas d'arité 0. *)
 let make (nom: string) (termes: t list) : t =
+  assert (nom != "");
   Fun(nom, termes)
 
 (** Création d'un terme restreint à une variable. *)
@@ -93,7 +99,6 @@ let fresh () : var =
 (** Combinaison des deux précédents. *)
 let fresh_var () : t =
   var (fresh ())
-
 
 (** [save ()] renvoie un descripteur de l'état actuel. *)
 let save () : state =
@@ -130,13 +135,26 @@ and pp (ppf: Format.formatter) (elem: t) : unit =
 let test_print () : unit = 
   Format.printf "%a" pp (Fun ("f", [Fun ("g", [Var "X"]); Fun ("h", [Var "y"]); Var "Z"]))
 
+let pp_var_name_only (ppf: Format.formatter) (v: t) : unit = 
+  match v with
+    Var(s) -> Format.fprintf ppf "@[<h>%s@]" s
+  | _ -> Format.printf "@[<h>%a@]" pp v
+
+let pp_vars_in_list (ppf: Format.formatter) (l: t list) : unit =
+  let rec parcours (l: t list) : unit =
+    match l with 
+      [] -> ()
+    | Var(s)::q -> Format.fprintf ppf "%a" pp_var_name_only (Var s); parcours q
+    | _::q -> parcours q
+  in parcours l
+
 let pp_state (ppf: Format.formatter) (s: state option) : unit = 
   let rec pp_state_rec (ppf: Format.formatter) (s: state) = match s with
     [] -> Format.fprintf ppf ""
-  | (n, v)::q -> Format.fprintf ppf "\t@[<h>%s -> %a@]@.%a" n pp v pp_state_rec q
+  | (n, v)::q -> Format.fprintf ppf "\t@[<h>%s -> %a@]@.%a" n pp_var_name_only v pp_state_rec q
   in let st = Option.value s ~default:(!global_state) in
     Format.fprintf ppf "{@.";
-    Format.fprintf ppf "@[<h>%a@]}" pp_state_rec st 
+    Format.fprintf ppf "@[<h>%a@]@.}" pp_state_rec st 
 (*
 let pp_state (ppf: Format.formatter) (s: state option) : unit =
   ignore (ppf, s);

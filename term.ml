@@ -52,7 +52,8 @@ let rec var_equals (v1: var) (v2: var) : bool =
   v1 = v2 || (ex1 && equals (lookup v1 None) (Var v2)) || (ex2 && equals (lookup v2 None) (Var v1)) || (ex1 && ex2 && equals (lookup v1 None) (lookup v2 None))     
 
       
-and equals (b : bool) (t1 : t) (t2 : t) : bool =
+and equals (t1:t) (t2:t) : bool =
+  let rec aux (b : bool) (t1 : t) (t2 : t) : bool =
     match t1, t2 with
     | Var(x), Var(y) -> var_equals x y
     | Fun (s1, l1), Fun(s2, l2) when s1=s2 -> 
@@ -61,15 +62,14 @@ and equals (b : bool) (t1 : t) (t2 : t) : bool =
       | [],[] -> true
       | [], _ -> false
       | _, [] -> false
-      | hd1::tl1, hd2::tl2 -> equals b hd1 hd2 && equals b (Fun (s1, tl1)) (Fun (s2, tl1))
+      | hd1::tl1, hd2::tl2 -> aux b hd1 hd2 && aux b (Fun (s1, tl1)) (Fun (s2, tl1))
       )
-      
-      
     | Var(x), y when (existe x None) -> 
         lookup x None = y
     | x, Var(y) when existe y None ->
         lookup y None = x
     | _ -> false
+  in aux true t1 t2
 
 
 

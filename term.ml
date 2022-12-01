@@ -51,26 +51,27 @@ let rec var_equals (v1: var) (v2: var) : bool =
   let ex1 = existe v1 None and ex2 = existe v2 None in
   v1 = v2 || (ex1 && equals (lookup v1 None) (Var v2)) || (ex2 && equals (lookup v2 None) (Var v1)) || (ex1 && ex2 && equals (lookup v1 None) (lookup v2 None))     
 
-and list_equals (b : bool) (l1 : t list) (l2 : t list) : bool =
-  if not b then 
-    false
-  else
-    match l1,l2 with
-    | [],[] -> true
-    | [], _ -> false
-    | _, [] -> false
-    | hd1::tl1, hd2::tl2 -> list_equals (b && equals hd1 hd2) tl1 tl2
-
-and equals (t1: t) (t2: t) : bool =
-  match t1, t2 with
-  | Var(x), Var(y) -> var_equals x y
-  | Fun (s1, l1), Fun(s2, l2) -> s1 = s2 && list_equals true l1 l2
-  | Var(x), y when (existe x None) -> 
-      lookup x None = y
-  | x, Var(y) when existe y None ->
-      lookup y None = x
-  | _ -> false
       
+and equals (b : bool) (t1 : t) (t2 : t) : bool =
+    match t1, t2 with
+    | Var(x), Var(y) -> var_equals x y
+    | Fun (s1, l1), Fun(s2, l2) when s1=s2 -> 
+      (
+      match l1,l2 with
+      | [],[] -> true
+      | [], _ -> false
+      | _, [] -> false
+      | hd1::tl1, hd2::tl2 -> equals b hd1 hd2 && equals b (Fun (s1, tl1)) (Fun (s2, tl1))
+      )
+      
+      
+    | Var(x), y when (existe x None) -> 
+        lookup x None = y
+    | x, Var(y) when existe y None ->
+        lookup y None = x
+    | _ -> false
+
+
 
 (** Constructeurs de termes. *)
 

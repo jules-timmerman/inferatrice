@@ -2,8 +2,11 @@ open Term
 
 exception Unification_failure
 
+(*Supprime les couples de termes déja unifiés des listes de termes qui suivent *)
+val remove_couple : t -> t -> t list -> t list -> (t list * (t list))
 
-
+(*Supprime le terme déja unifié de la liste de termes qui suit *)
+val remove : t -> t list -> t list
 
 (*Return true si v est une variable de t*)
 val look_for : var -> t -> bool

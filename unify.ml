@@ -38,19 +38,19 @@ let rec unify (t1: t) (t2: t) : unit =
   match observe t1, observe t2 with
   | Var x, Var y when var_equals x y -> ()
   | Var x, t -> (* Cas une variable et un terme : on unifie si la variable n'est pas dans t *)
-    if look_for x t1 then
+    if look_for x t2 then
       raise Unification_failure
     else
         (if existe x None then 
           let t_bis = lookup x None in
           (
-            (if t_bis = t1 then 
+            (if t_bis = t2 then 
             ()
           else
-            unify t_bis t1)
+            unify t_bis t2)
           )
         else 
-          bind x t1)
+          bind x t2)
   | t, Var y -> unify t2 t1(* Revient au cas précédent *)
   | Fun (s1, _), Fun (s2, _) when s1<>s2 -> raise Unification_failure (* Si deux fct différentes : impossible d'unifier *)
   | Fun (_, []), Fun (_, []) -> () (*déja unifié si plus que 2 listes vides*)

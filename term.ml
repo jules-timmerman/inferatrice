@@ -38,7 +38,6 @@ let existe (v: var) (s: state option) : bool =
     On rajoute en tête de liste pour le nouveau *)
 let bind (v: var) (t: t) : unit =
   assert (v != "");
-  Format.printf "Bind appelé : %s\n" v;
   global_state := (v,t)::(!global_state)
 
 (** Recherche d'une variable dans un environnement 

@@ -69,6 +69,8 @@ let rules (rules: (string Ast.Atom.t * string Ast.Atom.t list) list) : Query.ato
     La fonction renvoyée peut être appelée quand une solution aura été
     trouvée: elle affiche l'état des variables à ce moment là. *)
 let query (atomes: string Ast.Atom.t list) : Query.t * (unit -> unit) =
+  (* On crée la query à partir des atomes *)
   let q = build_and_query atomes in
+  (* On récupère les variables qui apparaissent pour pouvoir afficher uniquement celle-ci *)
   let vars = List.map (fun v -> Term.var v) (Query.get_var_from_query q) in
-  q, fun () -> Format.printf "%a" Term.pp_vars_in_list vars
+  q, fun () -> Format.printf "%a" Term.pp_vars_in_list vars 

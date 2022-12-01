@@ -31,7 +31,6 @@ exception Found
 
 
 let rec search ?(atom_to_query = default_search) (cont:(unit -> 'a)) (t:t) : unit =
-  Format.fprintf Format.std_formatter "\n\nTraitement de la query : \n%a\n" pp t ;
   let f = search ~atom_to_query:atom_to_query in
   try 
     begin

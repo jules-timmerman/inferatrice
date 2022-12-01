@@ -58,4 +58,4 @@ let rec unify (t1: t) (t2: t) : unit =
   | Fun (_, _), Fun (_, []) -> raise Unification_failure (* idem *)
   | Fun (s1, hd1::tl1), Fun (s2, hd2::tl2) ->
       let (a,b) = remove_couple hd1 hd2 tl1 tl2 in
-      unify (Fun(s1,a)) (Fun(s2,b));unify hd1 hd2 (* On unifie terme par terme *)
+      unify hd1 hd2; unify (Fun(s1,a)) (Fun(s2,b)) (* On unifie terme par terme *)

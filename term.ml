@@ -67,15 +67,17 @@ let observe (t: t) : obs_t =
 (** Egalité syntaxique entre termes et variables. *)
 let rec var_equals (v1: var) (v2: var) : bool = 
   let ex1 = existe v1 None and ex2 = existe v2 None in
-  v1 == v2 || v1 = v2 || 
+  (* v1 == v2 ||  *)
+  v1 = v2 || 
   (ex1 && equals (lookup v1 None) (var v2)) || 
   (ex2 && equals (lookup v2 None) (var v1)) || 
   (ex1 && ex2 && equals (lookup v1 None) (lookup v2 None))     
 
 and equals (t1:t) (t2:t) : bool =
   let rec aux (b : bool) (t1 : t) (t2 : t) : bool =
-    t1 == t2 ||
+    (*t1 == t2 ||*)
     match (observe t1), (observe t2) with
+    | t1,t2 when t1 = t2 -> true
     | Var(x), Var(y) -> var_equals x y
     | Fun (s1, l1), Fun(s2, l2) when s1=s2 -> 
       (

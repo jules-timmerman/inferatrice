@@ -60,13 +60,14 @@ let observe (t: t) : obs_t =
 (** Egalité syntaxique entre termes et variables. *)
 let rec var_equals (v1: var) (v2: var) : bool = 
   let ex1 = existe v1 None and ex2 = existe v2 None in
-  v1 = v2 || 
+  v1 == v2 || 
   (ex1 && equals (lookup v1 None) (Var v2)) || 
   (ex2 && equals (lookup v2 None) (Var v1)) || 
-  (ex1 && ex2 && equals (lookup v1 None) (lookup v2 None))     
+  (ex1 && ex2 && equals (lookup v1 None) (lookup v2 None))  
 
 and equals (t1:t) (t2:t) : bool =
   let rec aux (b : bool) (t1 : t) (t2 : t) : bool =
+    t1 == t2 ||
     match t1, t2 with
     | Var(x), Var(y) -> var_equals x y
     | Fun (s1, l1), Fun(s2, l2) when s1=s2 -> 
@@ -84,7 +85,17 @@ and equals (t1:t) (t2:t) : bool =
     | _ -> false
   in aux true t1 t2
 
-
+(** On suit une chaines de variables jusqu'à obtenir une valeur 
+    ou une variable non initialisée *)
+let follow_chain (v: var) : t = 
+  let rec parcours (name: var) : t =
+    if existe name None then 
+      match lookup name None with
+        Var(n) -> parcours n
+      | value -> value
+    else
+      Var (name)
+  in parcours v  
 
 (** Constructeurs de termes. *)
 
@@ -135,7 +146,7 @@ and pp (ppf: Format.formatter) (elem: t) : unit =
     Var (s) ->
     if existe s None then
         let value = (lookup s None) in
-          Format.fprintf ppf "@[<h>(%s = %a)@]" s pp value 
+          Format.fprintf ppf "@[<h>%a@]" pp value 
     else
         Format.fprintf ppf "@[<h>%s@]" s
   | Fun (f, args) -> Format.fprintf ppf "@[<h>%s(%a)@]" f pp_args args
@@ -152,7 +163,7 @@ let pp_vars_in_list (ppf: Format.formatter) (l: t list) : unit =
   let rec parcours (l: t list) : unit =
     match l with 
       [] -> ()
-    | Var(s)::q -> Format.fprintf ppf "%a" pp (Var s); parcours q
+    | Var(s)::q -> Format.fprintf ppf "@[%s = %a@]@." s pp (follow_chain s); parcours q
     | _::q -> parcours q
   in parcours l
 

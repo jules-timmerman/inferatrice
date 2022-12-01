@@ -4,7 +4,7 @@
 * Le type [obs_t] correspond à un terme superficiellement explicité. *)
 
 type var = string
-type t = Fun of string * t list | Var of var*string
+type t = Fun of string * t list | Var of var * string
 type obs_t = Fun of string * t list | Var of var
 
 (** Manipulation de l'état: sauvegarde, restauration. *)

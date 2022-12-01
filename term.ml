@@ -15,6 +15,15 @@ let global_state: state ref = ref []
 let variable_number: int ref = ref 0
 
 
+(* On utilise les deux prochaines variables pour éviter de faire trop d'instantiation
+   Cf dans les règles, on a les variables X qui ont les mêmes noms *)
+(** Liste contenant les associations pour la règle en cours d'association
+   Le int est le hash de l'objet 'a passé dans convert_var *)
+let instantiation_in_process : (int * var) list ref = ref []
+
+(** Le numéro de la règle en cours *)
+let instantiation_number : int ref = ref 0
+
 (** Vérifie si une variable existe dans l'environnement *)
 let existe (v: var) (s: state option) : bool = 
   assert (v != "");
@@ -144,7 +153,7 @@ let pp_vars_in_list (ppf: Format.formatter) (l: t list) : unit =
   let rec parcours (l: t list) : unit =
     match l with 
       [] -> ()
-    | Var(s)::q -> Format.fprintf ppf "%a" pp_var_name_only (Var s); parcours q
+    | Var(s)::q -> Format.fprintf ppf "%a" pp (Var s); parcours q
     | _::q -> parcours q
   in parcours l
 
@@ -164,4 +173,29 @@ let pp_state (ppf: Format.formatter) (s: state option) : unit =
     in parcours !global_state
 *)
 
-let convert_var s = fresh_var ()
+let convert_var (i:int) (s:'a) : t = 
+  (* Si i !=, on a changé de règle donc on vide la liste actuelle de mémoire et on change le numéro courant*)
+  if i <> !instantiation_number then (
+  instantiation_number := i ;
+instantiation_in_process := []
+  ) ;
+  let h = Hashtbl.hash s in
+  (* On cherche si la variable a déja été créée pendant cette instantiation *)
+  try 
+    let v = List.assoc h (!instantiation_in_process) in  
+    var v
+  with
+    | Not_found -> let v = fresh () in 
+      instantiation_in_process := (h,v)::(!instantiation_in_process) ; var v
+
+let get_var_from_term (t:t) : var list =
+  let rec aux (t:t) (acc: var list) : var list = match t with
+    |Var(v) -> v::acc
+    |Fun(n,l) -> List.fold_left (fun a t -> aux t a) acc l
+  in aux t [] 
+
+let get_var_from_terms (l : t list) : var list =
+  let rec aux (t:t) (acc: var list) : var list = match t with
+    |Var(v) -> v::acc
+    |Fun(n,l) -> List.fold_left (fun a t -> aux t a) acc l
+in List.fold_left (fun a t -> aux t a) [] l

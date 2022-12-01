@@ -61,3 +61,16 @@ let has_solution ?(atom_to_query = default_has)  (t:t) : bool =
   try search ~atom_to_query:atom_to_query (fun () -> raise Found) t ; false
     with 
     | Found -> true
+
+
+(** Renvoie la liste des variables qui apparaissent dans la query*)
+let get_var_from_query (q: t) : Term.var list = 
+  let rec aux (q:t) (acc:Term.var list) : Term.var list = 
+    match q with
+    |True -> acc
+    |False -> acc
+    |And(q1,q2) -> let acc2 = aux q1 acc in aux q2 acc2
+    |Or(q1,q2) -> let acc2 = aux q1 acc in aux q2 acc2
+    |Equals(t1,t2) -> (Term.get_var_from_term t2)@(Term.get_var_from_term t1)@acc
+    |Atom(n,l) -> Term.get_var_from_terms l
+  in aux q []

@@ -1,7 +1,11 @@
 
+(** Compteur pour identifier chaque instantiation des règles différentes*)
+let rule_counter = ref 0 
+
+
 (** Fonction de conversion d'un Ast.Atom en Query avec empactage *)
 let convert (a : string Ast.Atom.t) : Query.t = 
-  let n,l= (Ast.Atom.convert (Term.convert_var) a) in Query.Atom(n,l)
+  let n,l= (Ast.Atom.convert (Term.convert_var !rule_counter) a) in Query.Atom(n,l)
 
 (** Prends des premices et les AND ensemble pour donner une Query*)
 let rec build_and_query (liste: string Ast.Atom.t list) : Query.t = 
@@ -20,7 +24,7 @@ let rec build_and_query (liste: string Ast.Atom.t list) : Query.t =
 
 (** Renvoie un AND avec des tests d'égalités entre les paramètres de l'atome et de la liste de termes *)
 let and_query_args (terms: Term.t list) (a: string Ast.Atom.t) : Query.t =
-  let _,l = Ast.Atom.convert (Term.convert_var) a in
+  let _,l = Ast.Atom.convert (Term.convert_var (!rule_counter)) a in
   assert (List.length l = List.length terms) ; (* On vérifie si on a la même taille de listes *)
   let rec aux l1 l2 = match l1,l2 with
     |[],[] -> Query.True
@@ -33,13 +37,14 @@ let and_query_args (terms: Term.t list) (a: string Ast.Atom.t) : Query.t =
 (** Prends des règles et le terme original 
     Renvoie une query représentant un OU des différentes query composées de AND entre les arguments et les prémices *)
 let rec or_equals_query (terms: Term.t list) (rules : string Ast.Rule.t list) : Query.t =
+  (* On commence par incrémenter : A chaque exécution, on considère une règle différente *)
+  incr rule_counter ; 
   match rules with
     |[] -> Query.False
     |[(a,premices)] -> And(and_query_args terms a, build_and_query premices)
     |(a,premices)::q -> Or(And(and_query_args terms a, build_and_query premices), or_equals_query terms q)
 
 
-(* TODO : refaire sans fold pour éviter le False inutile*)
 (** Conversion des règles parsées en un [atom_to_query_t] utilisable
   par [Query.search] pour résoudre des requêtes en intégrant les
   règles d'inférence données. *)
@@ -64,5 +69,6 @@ let rules (rules: (string Ast.Atom.t * string Ast.Atom.t list) list) : Query.ato
     La fonction renvoyée peut être appelée quand une solution aura été
     trouvée: elle affiche l'état des variables à ce moment là. *)
 let query (atomes: string Ast.Atom.t list) : Query.t * (unit -> unit) =
-  build_and_query atomes, 
-  fun () -> Format.printf "%a" Term.pp_state None
+  let q = build_and_query atomes in
+  let vars = List.map (fun v -> Term.var v) (Query.get_var_from_query q) in
+  q, fun () -> Format.printf "%a" Term.pp_vars_in_list vars

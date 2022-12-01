@@ -27,3 +27,5 @@ type atom_to_query_t = string -> Term.t list -> t
     en [True]... ou quelquechose d'équivalent pour l'Infératrice. *)
 val search : ?atom_to_query:atom_to_query_t -> (unit -> 'a) -> t -> unit
 val has_solution : ?atom_to_query:atom_to_query_t -> t -> bool
+
+val get_var_from_query : t -> Term.var list 

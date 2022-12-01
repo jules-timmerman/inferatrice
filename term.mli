@@ -62,7 +62,12 @@ val pp : Format.formatter -> t -> unit
 
 val test_print : unit -> unit
 val pp_state : Format.formatter -> state option -> unit
-
+val pp_vars_in_list : Format.formatter -> t list -> unit
 
 (** Fonction de translation pour Ast *)
-val convert_var : 'a -> t
+val convert_var : int -> 'a -> t
+
+
+val get_var_from_term : t -> var list
+val get_var_from_terms : t list -> var list
+

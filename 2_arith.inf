@@ -30,6 +30,9 @@ derive ack(s(X),s(Y),Z) from ack(s(X),Y,R), ack(X,R,Z).
 
 derive zero(z).
 
+# Egalité
+derive eq(X,X).
+
 #
 # -- Exemples ----------------------------------------
 #

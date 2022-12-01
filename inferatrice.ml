@@ -27,6 +27,8 @@ let () =
   in
   let lexbuf = Lexing.from_channel stdin in
   while true do
+    Term.reset () ;
+
     Format.printf "\nRequête? " ;
     Format.print_flush () ;
     try

@@ -4,8 +4,8 @@
 * Le type [obs_t] correspond à un terme superficiellement explicité. *)
 
 type var = string
-type t = Fun of string * t list | Var of var
-type obs_t = t
+type t = Fun of string * t list | Var of var*string
+type obs_t = Fun of string * t list | Var of var
 
 (** Manipulation de l'état: sauvegarde, restauration. *)
 
@@ -23,6 +23,11 @@ let instantiation_in_process : (int * var) list ref = ref []
 
 (** Le numéro de la règle en cours *)
 let instantiation_number : int ref = ref 0
+
+(** Création d'un terme restreint à une variable. *)
+let var ?(name = "") (v: var) : t =
+  Var(v, name)
+
 
 (** Vérifie si une variable existe dans l'environnement *)
 let existe (v: var) (s: state option) : bool = 
@@ -55,20 +60,22 @@ let lookup (v: var) (s: state option) : t =
 
 (** Observation d'un terme. *)
 let observe (t: t) : obs_t =
-  t
+  match t with
+    |Var(v,_) -> Var(v)
+    |Fun(s,l) -> Fun(s,l)
 
 (** Egalité syntaxique entre termes et variables. *)
 let rec var_equals (v1: var) (v2: var) : bool = 
   let ex1 = existe v1 None and ex2 = existe v2 None in
-  v1 == v2 || 
-  (ex1 && equals (lookup v1 None) (Var v2)) || 
-  (ex2 && equals (lookup v2 None) (Var v1)) || 
-  (ex1 && ex2 && equals (lookup v1 None) (lookup v2 None))  
+  v1 == v2 || v1 = v2 || 
+  (ex1 && equals (lookup v1 None) (var v2)) || 
+  (ex2 && equals (lookup v2 None) (var v1)) || 
+  (ex1 && ex2 && equals (lookup v1 None) (lookup v2 None))     
 
 and equals (t1:t) (t2:t) : bool =
   let rec aux (b : bool) (t1 : t) (t2 : t) : bool =
     t1 == t2 ||
-    match t1, t2 with
+    match (observe t1), (observe t2) with
     | Var(x), Var(y) -> var_equals x y
     | Fun (s1, l1), Fun(s2, l2) when s1=s2 -> 
       (
@@ -79,9 +86,9 @@ and equals (t1:t) (t2:t) : bool =
       | hd1::tl1, hd2::tl2 -> aux b hd1 hd2 && aux b (Fun (s1, tl1)) (Fun (s2, tl1))
       )
     | Var(x), y when (existe x None) -> 
-        lookup x None = y
+        lookup x None = t2
     | x, Var(y) when existe y None ->
-        lookup y None = x
+        lookup y None = t1
     | _ -> false
   in aux true t1 t2
 
@@ -90,11 +97,12 @@ and equals (t1:t) (t2:t) : bool =
 let follow_chain (v: var) : t = 
   let rec parcours (name: var) : t =
     if existe name None then 
-      match lookup name None with
+      let v = lookup name None in
+      match observe v with
         Var(n) -> parcours n
-      | value -> value
+      | _ -> v
     else
-      Var (name)
+      var name
   in parcours v  
 
 (** Constructeurs de termes. *)
@@ -105,9 +113,6 @@ let make (nom: string) (termes: t list) : t =
   assert (nom != "");
   Fun(nom, termes)
 
-(** Création d'un terme restreint à une variable. *)
-let var (v: var) : t =
-  Var(v)
 
 (** Création d'une variable fraîche. *)
 let fresh () : var = 
@@ -142,7 +147,7 @@ let rec pp_args (ppf: Format.formatter) (args: t list) : unit =
   | [t] -> Format.fprintf ppf "%a" pp t
   | t::q -> Format.fprintf ppf "%a, %a" pp t pp_args q
 and pp (ppf: Format.formatter) (elem: t) : unit =
-  match elem with 
+  match observe elem with 
     Var (s) ->
     if existe s None then
         let value = (lookup s None) in
@@ -151,11 +156,9 @@ and pp (ppf: Format.formatter) (elem: t) : unit =
         Format.fprintf ppf "@[<h>%s@]" s
   | Fun (f, args) -> Format.fprintf ppf "@[<h>%s(%a)@]" f pp_args args
 
-let test_print () : unit = 
-  Format.printf "%a" pp (Fun ("f", [Fun ("g", [Var "X"]); Fun ("h", [Var "y"]); Var "Z"]))
 
 let pp_var_name_only (ppf: Format.formatter) (v: t) : unit = 
-  match v with
+  match observe v with
     Var(s) -> Format.fprintf ppf "@[<h>%s@]" s
   | _ -> Format.printf "@[<h>%a@]" pp v
 
@@ -163,7 +166,7 @@ let pp_vars_in_list (ppf: Format.formatter) (l: t list) : unit =
   let rec parcours (l: t list) : unit =
     match l with 
       [] -> ()
-    | Var(s)::q -> Format.fprintf ppf "@[%s = %a@]@." s pp (follow_chain s); parcours q
+    | Var(s,_)::q -> Format.fprintf ppf "@[%s = %a@]@." s pp (follow_chain s); parcours q
     | _::q -> parcours q
   in parcours l
 
@@ -199,13 +202,15 @@ instantiation_in_process := []
       instantiation_in_process := (h,v)::(!instantiation_in_process) ; var v
 
 let get_var_from_term (t:t) : var list =
-  let rec aux (t:t) (acc: var list) : var list = match t with
+  let rec aux (t:t) (acc: var list) : var list = 
+  match (observe t) with
     |Var(v) -> v::acc
     |Fun(n,l) -> List.fold_left (fun a t -> aux t a) acc l
   in aux t [] 
 
 let get_var_from_terms (l : t list) : var list =
-  let rec aux (t:t) (acc: var list) : var list = match t with
+  let rec aux (t:t) (acc: var list) : var list = 
+  match (observe t) with
     |Var(v) -> v::acc
     |Fun(n,l) -> List.fold_left (fun a t -> aux t a) acc l
 in List.fold_left (fun a t -> aux t a) [] l

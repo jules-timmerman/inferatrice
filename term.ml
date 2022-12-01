@@ -168,7 +168,8 @@ let pp_vars_in_list (ppf: Format.formatter) (l: t list) : unit =
   let rec parcours (l: t list) : unit =
     match l with 
       [] -> ()
-    | Var(s,_)::q -> Format.fprintf ppf "@[%s = %a@]@." s pp (follow_chain s); parcours q
+    | Var(s,n)::q when n = ""-> Format.fprintf ppf "@[%s = %a@]@." s pp (follow_chain s); parcours q
+    | Var(s,n)::q-> Format.fprintf ppf "@[%s = %a@]@." n pp (follow_chain s); parcours q
     | _::q -> parcours q
   in parcours l
 

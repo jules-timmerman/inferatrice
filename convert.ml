@@ -65,12 +65,26 @@ let rules (rules: (string Ast.Atom.t * string Ast.Atom.t list) list) : Query.ato
     (* On OR les premices des règles satisfantes ensembles en les convertissant en Query*)
     or_equals_query terms filtered
 
+
+
 (** Conversion d'une liste d'atomes parsés en une requête conjonctive.
     La fonction renvoyée peut être appelée quand une solution aura été
     trouvée: elle affiche l'état des variables à ce moment là. *)
 let query (atomes: string Ast.Atom.t list) : Query.t * (unit -> unit) =
+  (* Récupère les noms de variables entrés par l'utilisateur pour l'affichage joli (cf X au lieu de Var_0)*)
+  let rec get_var_from_astatom (acc: string list) (Ast.Atom.Atom(_,l): string Ast.Atom.t) : string list = 
+    match l with
+      |[] -> acc
+      |Var(s)::q -> let acc2 = s::acc in get_var_from_astatom acc2 (Ast.Atom.Atom("",q)) 
+      |App(_,l2)::q -> let acc2 = get_var_from_astatom acc (Ast.Atom.Atom("",l2)) in
+        get_var_from_astatom acc2 (Ast.Atom.Atom("",q))
+  in
   (* On crée la query à partir des atomes *)
   let q = build_and_query atomes in
   (* On récupère les variables qui apparaissent pour pouvoir afficher uniquement celle-ci *)
-  let vars = List.map (fun v -> Term.var v) (Query.get_var_from_query q) in
-  q, fun () -> Format.printf "%a" Term.pp_vars_in_list vars 
+  (* Les variables avec le nom de l'utilisateur *)
+  let vars_ori = List.fold_left 
+    (fun li a -> get_var_from_astatom li a) [] atomes in
+  (* Les variables sous forme de Term.t avec les noms de l'utilisateur *)
+  let vars = List.map2 (fun v s -> Term.var ~name:s v) (Query.get_var_from_query q) vars_ori in
+  q, fun () -> Format.printf "%a" Term.pp_vars_in_list (List.rev vars) 

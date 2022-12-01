@@ -4,9 +4,9 @@
   * Le type [obs_t] correspond à un terme superficiellement explicité. *)
 
 type var = string
-type t = Fun of string * t list | Var of var
-type obs_t = t
-
+type t = Fun of string * t list | Var of var*string
+type obs_t = Fun of string * t list | Var of var
+  
 type state = (var * t) list
 
 (** Modification d'une variable. *)
@@ -33,7 +33,7 @@ val var_equals : var -> var -> bool
 val make : string -> t list -> t
 
 (** Création d'un terme restreint à une variable. *)
-val var : var -> t
+val var : ?name:string -> var -> t
 
 (** Création d'une variable fraîche. *)
 val fresh : unit -> var
@@ -60,7 +60,6 @@ val reset : unit -> unit
 val pp_args: Format.formatter -> t list -> unit
 val pp : Format.formatter -> t -> unit
 
-val test_print : unit -> unit
 val pp_state : Format.formatter -> state option -> unit
 val pp_vars_in_list : Format.formatter -> t list -> unit
 

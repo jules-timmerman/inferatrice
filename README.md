@@ -114,4 +114,58 @@ Résolution de la requête (ack(s(s(z())), s(s(z())), s(Var_1)) && (half(Var_1, 
 Fin des solutions pour cette requête.
 ```
 
- 
+## Fonctionnement 
+### Term.ml
+
+Ce fichier contient tout le code se rapportant à nos termes. 
+
+Nous définissions un terme avec les types suivants : 
+```ocaml
+type var = string
+type t = Fun of string * t list | Var of var * string
+type obs_t = Fun of string * t list | Var of var
+```
+
+Le type `var` encode les variables : il s'agit d'un nom local de la forme `var_n` où `n` est un nombre que l'on incrémente à chaque nouvelle variable.
+
+Le type `t` encode les termes. Il s'agit soit :
+- d'une fonction `Fun`. Par exemple, `plus(1,2,X)` est un type `Fun`. `plus` est la `string` associée et les termes représentant `1`, `2` et `X` sont dans la liste.
+- d'une variable `Var`. Par exemple, `X` en est une. Le type `var` contient le nom local pour que le programme la reconaisse. La seconde `string` est le nom original (`X` dans l'exemple) qui permet de l'afficher à la fin pour l'utilisateur.
+
+Pour pouvoir convertir du type `Ast.Term.t`, on utilise la fonction `convert_var`. On utilise aussi deux variables globales : `instantiation_in_process` et `instantiation_counter`. Ces variables permettent de se souvenir des variables que l'on vient de créer pendant une règle. 
+
+On considère par exemple la règle suivante :
+```
+derive lt(s(X),s(Y))
+  from lt(X,Y).
+```
+Dans cette règle, nous avons besoin que les `X` et `Y` crées soient les mêmes. Lors de la création de la première instance, nous ajoutons le couple composé du hash (pour garder le typage `'a`) ainsi que la variable créée dans notre `instantiation_in_process`. La prochaine fois que l'on fera référence à cette variable, le hash étant identique, nous renverrons l'instance déjà créée. On réinitialise `instantiation_in_process` à chaque fois que l'on considère une nouvelle règle, ce qui est identifié grâce au numéro passé en argument. On se souviens aussi du numéro d'instantiation dans le fichier `convert.ml`.
+
+
+
+### Query.ml
+
+Ce fichier définit le type `Query.t` et permet son utilisation, principalement via l'utilisation de la fontion `search`.
+
+Cette fonction prend en argument la fonction de conversion d'un `Ast.Atom.t` vers un `Query.t`, une fonction `unit -> 'a` qui fonctionne comme une espèce de callback et la query que l'on souhaite évaluer. 
+
+La fonction de callback contient la fonction d'affichage des variables lorsqu'on a trouvé. En revanche, dans la fonction `has_solution` qui renvoie un booléen, la fonction de callback est utilisée pour lever une exception, que l'on attrape ensuite dans `has_solution` pour renvoyer le booléen. 
+
+
+
+
+### Convert.ml
+
+Le but de ce fichier est de définirles utilitaires nécessaire à la conversion du type `Ast.Atom.t` au type `Query.t`. Pour cela, la fonction `rules` est utilisée pour créer une fonction `atom_to_query` qui permet de faire cette conversion tout en tenant compte des règles d'inférences saisies par l'utilisateur.
+
+La fonction `atom_to_query` prends en entrée un `Atom` dépaqueter. La fonction cherche dans les règles d'inférences saisies celles qui pourraient être utiliser comme dérivation. On s'intéresse uniquement aux règles qui ont le même nom ainsi que le même nombre d'argument que l'`Atom` d'entrée. 
+
+On crée ensuite la query résultante en encodant de la manière suivante :
+- Pour chque règle, les prémices sont encodées récursivement et `AND` entre elles.
+- On rajoute à ce `AND` des `EQUALS` termes à termes entre les arguments de la conclusion et ceux de l'`Atom` initial. Cela a pour effet de forcer un appel à `unify` au moment de l'évaluation de la query.
+- On `OR` finalement toutes les query ensembles.
+
+La fonction `query` quand à elle est utilise le même principe d'encodage que la fonction `rules` mais elle n'est limitée qu'à une règle donc nous n'avons pas besoin de `OR` à la fin. Nous renvoyons aussi la fonction permettant l'affichage du résultat après l'exécution. Pour cela, nous récupérons récursivement les variables apparaissant dans l'atome passé en argument (ce qui donne le nom saisi par l'utilisateur). Nous pouvons ensuite les utilisée pour remplir le second champ des `Var` de `Term.t`.
+
+
+

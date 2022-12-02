@@ -75,6 +75,7 @@ let rec var_equals (v1: var) (v2: var) : bool =
 
 and equals (t1:t) (t2:t) : bool =
   let rec aux (b : bool) (t1 : t) (t2 : t) : bool =
+    b &&(
     (*t1 == t2 ||*)
     match (observe t1), (observe t2) with
     | Var(x), Var(y) -> var_equals x y
@@ -91,6 +92,7 @@ and equals (t1:t) (t2:t) : bool =
     | x, Var(y) when existe y None ->
         lookup y None = t1
     | _ -> false
+    )
   in aux true t1 t2
 
 (** On suit une chaines de variables jusqu'à obtenir une valeur 

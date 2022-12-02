@@ -109,7 +109,7 @@ let unify_tests = "Unify", [ (* {{{ *)
         (fun () -> Unify.unify x fx)
     end ;
 
-    "Bin-tree", `Quick, begin fun () ->
+    (*"Bin-tree", `Quick, begin fun () ->
       try begin 
         let node x y = Term.make "n" [x;y] in
 
@@ -124,7 +124,7 @@ let unify_tests = "Unify", [ (* {{{ *)
         Unify.unify t1 t2
       end with 
         Stack_overflow -> raise Stack_overflow
-    end;
+    end;*)
 
         (*"Fil", `Quick, begin fun () ->
       try begin 

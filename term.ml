@@ -73,7 +73,9 @@ let restore (s: state) : unit =
     initialisé. *)
 let reset () : unit =
   global_state := [];
-  variable_number := 0
+  variable_number := 0 ;
+  instantiation_number := 0 ;
+  instantiation_in_process := []
 
 
 (** Vérifie si une variable existe dans l'environnement *)

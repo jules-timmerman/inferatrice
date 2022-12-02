@@ -163,10 +163,11 @@ Le but de ce fichier est de définir les utilitaires nécessaires à la conversi
 La fonction `atom_to_query` prends en entrée un `Atom` dépaqueté. La fonction cherche dans les règles d'inférences saisies celles qui pourraient être utilisées comme dérivation. On s'intéresse uniquement aux règles qui ont le même nom ainsi que le même nombre d'argument que l'`Atom` d'entrée.
 
 On crée ensuite la query résultante en encodant de la manière suivante :
-
 - Pour chaque règle, les prémices sont encodées récursivement et `AND` entre elles.
-- On rajoute à ce `AND` des `EQUALS` termes à termes entre les arguments de la conclusion et ceux de l'`Atom` initial. Cela a pour effet de forcer un appel à `unify` au moment de l'évaluation de la query.
-- On `OR` finalement toutes les query ensembles.
+- Pour chaque règle, les arguments de la conclusion sont mis dans un `EQUALS` avec l'argument de l'`Atom` d'entrée.
+Cela a pour effet de forcer un appel à `unify` au moment de l'évaluation de la query. 
+- Pour chaque règle, on `AND` le premier et deuxième point ensemble. 
+- On `OR` finalement tous les résultats précédents ensembles.
 
 La fonction `query` quant à elle utilise le même principe d'encodage que la fonction `rules` mais elle n'est limitée qu'à une règle donc nous n'avons pas besoin de `OR` à la fin. Nous renvoyons aussi la fonction permettant l'affichage du résultat après l'exécution. Pour cela, nous récupérons récursivement les variables apparaissant dans l'atome passé en argument (ce qui donne le nom saisi par l'utilisateur). Nous pouvons ensuite les utiliser pour remplir le second champ des `Var` de `Term.t`.
 

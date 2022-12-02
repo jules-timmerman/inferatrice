@@ -64,38 +64,37 @@ let observe (t: t) : obs_t =
     |Var(v,_) -> Var(v)
     |Fun(s,l) -> Fun(s,l)
 
-let cont_def () = true
+(** Egalité syntaxique entre termes et variables. *)
+let rec var_equals (v1: var) (v2: var) : bool = 
+  let ex1 = existe v1 None and ex2 = existe v2 None in
+  (*v1 == v2 ||  *)
+  v1 = v2 || 
+  (ex1 && equals (lookup v1 None) (var v2)) || 
+  (ex2 && equals (lookup v2 None) (var v1)) || 
+  (ex1 && ex2 && equals (lookup v1 None) (lookup v2 None))     
 
-let rec equal_init (cont: unit -> bool) (t1 : t) (t2 : t) : bool =
-    match (observe t1, observe t2) with 
-      Var x, Var y -> var_equals_init cont x y
-    | Fun(s1, l1), Fun (s2,l2) when s1 = s2 -> 
+and equals (t1:t) (t2:t) : bool =
+  let rec aux (b : bool) (t1 : t) (t2 : t) : bool =
+    b &&(
+    (*t1 == t2 ||*)
+    match (observe t1), (observe t2) with
+    | Var(x), Var(y) -> var_equals x y
+    | Fun (s1, l1), Fun(s2, l2) when s1=s2 -> 
       (
-        match l1, l2 with
-          [], [] -> cont ()
-        | _, [] -> false
-        | [], _ -> false
-        | t1::q1, t2::q2 -> equal_init (fun () -> cont () && (equal_init cont_def t1 t2)) (Fun(s1, q1)) (Fun(s2, q2))
+      match l1,l2 with
+      | [],[] -> true
+      | [], _ -> false
+      | _, [] -> false
+      | hd1::tl1, hd2::tl2 -> aux b hd1 hd2 && aux b (Fun (s1, tl1)) (Fun (s2, tl1))
       )
-    | Var(x), _ when (existe x None) -> 
-        equal_init cont (lookup x None) t2
-    | _, Var(y) when existe y None ->
-      equal_init cont t1 (lookup y None)
+    | Var(x), y when (existe x None) -> 
+        lookup x None = t2
+    | x, Var(y) when existe y None ->
+        lookup y None = t1
     | _ -> false
-        
+    )
+  in aux true t1 t2
 
-and var_equals_init (cont: unit -> bool) (v1: var) (v2: var) : bool =
-  match (existe v1 None, existe v2 None) with
-  | true, false -> equal_init (fun () -> cont ()) (lookup v1 None) (var v2)
-  | false, true -> equal_init (fun () -> cont ()) (var v1) (lookup v2 None)
-  | true, true -> equal_init (fun () -> cont ()) (lookup v1 None) (lookup v2 None)
-  | _ -> v1 = v2
-
-let equals (t1:t) (t2:t) : bool =
-  equal_init cont_def t1 t2
-
-let var_equals (v1: var) (v2: var) : bool =
-  var_equals_init cont_def v1 v2
 (** On suit une chaines de variables jusqu'à obtenir une valeur 
     ou une variable non initialisée *)
 let follow_chain (v: var) : t = 

@@ -29,8 +29,8 @@ let default_has: atom_to_query_t = fun s l ->
 exception End
 exception Found
 
-
 let rec search ?(atom_to_query = default_search) (cont:(unit -> 'a)) (t:t) : unit =
+  Term.debug (fun () -> Format.printf "Traitement de la query : %a\n\n" pp t) ;
   let f = search ~atom_to_query:atom_to_query in
   try 
     begin
@@ -74,5 +74,5 @@ let get_var_from_query (q: t) : Term.var list =
     |And(q1,q2) -> let acc2 = aux q1 acc in aux q2 acc2
     |Or(q1,q2) -> let acc2 = aux q1 acc in aux q2 acc2
     |Equals(t1,t2) -> (Term.get_var_from_term t2)@(Term.get_var_from_term t1)@acc
-    |Atom(n,l) -> Term.get_var_from_terms l
+    |Atom(n,l) -> (Term.get_var_from_terms l)@acc
   in aux q []

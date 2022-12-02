@@ -59,6 +59,16 @@ let rules (rules: (string Ast.Atom.t * string Ast.Atom.t list) list) : Query.ato
     or_equals_query terms filtered
 
 
+let remove_doublon l =
+  let rec aux x l = match l with
+    | [] -> []
+    | t::q when x = t -> aux x q
+    | t::q ->  t::(aux x q) 
+  in 
+  let rec aux2 l = match l with
+    | [] -> []
+    | t::q -> t::(aux2 (aux t q)) 
+  in aux2 l
 
 (** Conversion d'une liste d'atomes parsés en une requête conjonctive.
     La fonction renvoyée peut être appelée quand une solution aura été
@@ -76,10 +86,10 @@ let query (atomes: string Ast.Atom.t list) : Query.t * (unit -> unit) =
   let q = build_and_query atomes in
   (* On récupère les variables qui apparaissent pour pouvoir afficher uniquement celle-ci *)
   (* Les variables avec le nom de l'utilisateur *)
-  let vars_ori = List.fold_left 
-    (fun li a -> get_var_from_astatom li a) [] atomes in
-  (* Les variables sous forme de Term.t avec les noms de l'utilisateur *)
-  let l = (Query.get_var_from_query q) in
+  let vars_ori = remove_doublon (List.fold_left 
+    (fun li a -> get_var_from_astatom li a) [] atomes) in
+    (* Les variables sous forme de Term.t avec les noms de l'utilisateur *)
+  let l = remove_doublon (Query.get_var_from_query q) in
   assert(List.length l = List.length vars_ori) ;
   let vars = List.map2 (fun v s -> Term.var ~name:s v) l vars_ori in
-  q, fun () -> Format.printf "%a" Term.pp_vars_in_list (List.rev vars) 
+  q, fun () -> Format.printf "\nTrouvé : \n%a" Term.pp_vars_in_list (List.rev vars) 

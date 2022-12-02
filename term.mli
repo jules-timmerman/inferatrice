@@ -1,3 +1,5 @@
+val debug : (unit -> unit) -> unit
+
 (** Le type [t] correspond à la représentation interne des termes.
   * Le type [var] représente les variables, c'est à dire les objets que
   * l'on peut instantier.

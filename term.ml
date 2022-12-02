@@ -1,3 +1,9 @@
+let should_debug = false
+
+let debug c = 
+  if should_debug then c () else ()
+
+
 (** Le type [t] correspond à la représentation interne des termes.
 * Le type [var] représente les variables, c'est à dire les objets que
 * l'on peut instantier.
@@ -167,7 +173,7 @@ let rec var_equals (v1: var) (v2: var) : bool =
 
 
 and equals (t1 : t) (t2 : t) : bool =
-  let aux_equal (l : (t*t) list) (b : bool) : (t*t) list * bool =
+  let rec aux_equal (l : (t*t) list) (b : bool) : (t*t) list * bool =
   (
     match (l) with
     | []->[],b

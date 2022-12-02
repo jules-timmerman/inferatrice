@@ -54,10 +54,10 @@ let term_tests = "Term", [ (* {{{ *)
 ] (* }}} *)
 
 let equals_tests = "Equals",[
-  "X -> Y ; Y -> a", `Quick, begin fun () ->
+  "X -> Y ; Y -> a ; X == a", `Quick, begin fun () ->
     let get_var_name (t:Term.t) = match t with
       | Var(xn,_) -> xn
-      | _ -> failwith "eh ,"
+      | _ -> failwith "eh ?"
     in
     let open Term in
     reset ();
@@ -68,8 +68,65 @@ let equals_tests = "Equals",[
     let a = make "a" [] in
     bind xn y ;
     bind yn a ;
-    assert (equals x y) ;
+    assert (equals x a) ;
   end;
+
+  "X -> Y ; Y -> X ; X == Y", `Quick, begin fun () ->
+    let get_var_name (t:Term.t) = match t with
+      | Var(xn,_) -> xn
+      | _ -> failwith "eh ?"
+    in
+    let open Term in
+    reset ();
+    let x = fresh_var () in
+    let xn = get_var_name x in
+    let y = fresh_var () in
+    let yn = get_var_name y in
+    bind xn y ;
+    bind yn x ;
+    assert (equals x y) ;
+  end ;
+
+  "X1 -> X2 -> X3 -> X4 -> X5 -> X6 -> X1 ; X1 == X3", `Quick, begin fun () ->
+    let get_var_name (t:Term.t) = match t with
+      | Var(xn,_) -> xn
+      | _ -> failwith "eh ?"
+    in
+    let open Term in
+    reset ();
+    let x1 = fresh_var () in
+    let xn1 = get_var_name x1 in
+    let x2 = fresh_var () in
+    let xn2 = get_var_name x2 in
+    let x3 = fresh_var () in
+    let xn3 = get_var_name x3 in
+    let x4 = fresh_var () in
+    let xn4 = get_var_name x4 in
+    let x5 = fresh_var () in
+    let xn5 = get_var_name x5 in
+    let x6 = fresh_var () in
+    let xn6 = get_var_name x6 in
+    assert(not (equals x1 x3));
+    bind xn1 x2 ;
+    bind xn2 x3 ;
+    bind xn3 x4 ;
+    bind xn4 x5 ;
+    bind xn5 x6 ;
+    bind xn6 x1 ;
+    assert (equals x1 x3) ;
+  end ;
+
+  "X -> X ; X == X", `Quick, begin fun () ->
+    let open Term in 
+    let get_var_name (t:Term.t) = match t with
+      | Var(xn,_) -> xn
+      | _ -> failwith "eh ?"
+    in
+    let x = fresh_var () in
+    let xn = get_var_name x in
+    bind xn x ;
+    assert(equals x x);
+  end
 ]
 
 
@@ -109,6 +166,17 @@ let unify_tests = "Unify", [ (* {{{ *)
         (fun () -> Unify.unify x fx)
     end ;
 
+    "X = f(Y)", `Quick, begin fun () ->
+      let open Term in
+      reset () ;
+      let x = var (fresh ()) in
+      let y = fresh_var () in
+      let fy = make "f" [y] in
+      assert(not (equals x fy)) ;
+      Unify.unify x fy ;
+      assert(equals x fy)
+    end ;
+
     "Bin-tree", `Quick, begin fun () ->
       try begin 
         let node x y = Term.make "n" [x;y] in
@@ -143,7 +211,7 @@ let unify_tests = "Unify", [ (* {{{ *)
         Stack_overflow -> raise Stack_overflow
     end;*)
 
-    (*"Peigne", `Quick, begin fun () ->
+    "Peigne", `Quick, begin fun () ->
       try begin 
         let node x y = Term.make "n" [x;y] in
 
@@ -158,7 +226,7 @@ let unify_tests = "Unify", [ (* {{{ *)
         Unify.unify t1 t2
       end with 
         Stack_overflow -> raise Stack_overflow
-    end*)
+    end
 
 
 ] (* }}} *)

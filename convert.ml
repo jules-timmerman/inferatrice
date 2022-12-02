@@ -15,13 +15,6 @@ let rec build_and_query (liste: string Ast.Atom.t list) : Query.t =
   | t::q -> Query.And(convert t, build_and_query q)
 
 
-(** Filter en appliquant unify en terme à terme entre les arguments de la conclusion et les arguments du paramètres*)
-(* let filter_unify (terms : Term.t list) ((a,_) : string Ast.Rule.t) : bool = 
-  let _,l = Ast.Atom.convert (Term.convert_var) a in
-  try (List.iter2  Unify.unify l terms) ; true with
-    |Unify.Unification_failure -> false *)
-
-
 (** Renvoie un AND avec des tests d'égalités entre les paramètres de l'atome et de la liste de termes *)
 let and_query_args (terms: Term.t list) (a: string Ast.Atom.t) : Query.t =
   let _,l = Ast.Atom.convert (Term.convert_var (!rule_counter)) a in

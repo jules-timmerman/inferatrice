@@ -141,7 +141,8 @@ let restore (s: state) : unit =
     initialisé. *)
 let reset () : unit =
   global_state := [];
-  variable_number := 0
+  variable_number := 0 ;
+  instantiation_number := 0
 
 (** Pretty printing *)
 let rec pp_args (ppf: Format.formatter) (args: t list) : unit = 
@@ -181,14 +182,6 @@ let pp_state (ppf: Format.formatter) (s: state option) : unit =
   in let st = Option.value s ~default:(!global_state) in
     Format.fprintf ppf "{@.";
     Format.fprintf ppf "@[<h>%a@]@.}" pp_state_rec st 
-(*
-let pp_state (ppf: Format.formatter) (s: state option) : unit =
-  ignore (ppf, s);
-  let rec parcours s = match s with
-    [] -> ()
-  | (n, v)::q -> Format.printf "\t%s -> %a\n" n pp v; parcours q
-    in parcours !global_state
-*)
 
 let convert_var (i:int) (s:'a) : t = 
   (* Si i !=, on a changé de règle donc on vide la liste actuelle de mémoire et on change le numéro courant*)

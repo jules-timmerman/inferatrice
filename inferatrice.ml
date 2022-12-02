@@ -19,7 +19,6 @@ let rules_from_filename filename =
 exception Abort
 
 let () =
-  (* Term.test_print (); *)
   let atom_to_query =
     if Array.length Sys.argv = 1 then None else
       let rules = rules_from_filename Sys.argv.(1) in

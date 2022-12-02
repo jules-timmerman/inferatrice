@@ -53,6 +53,26 @@ let term_tests = "Term", [ (* {{{ *)
 
 ] (* }}} *)
 
+let equals_tests = "Equals",[
+  "X -> Y ; Y -> a", `Quick, begin fun () ->
+    let get_var_name (t:Term.t) = match t with
+      | Var(xn,_) -> xn
+      | _ -> failwith "eh ,"
+    in
+    let open Term in
+    reset ();
+    let x = fresh_var () in
+    let xn = get_var_name x in
+    let y = fresh_var () in
+    let yn = get_var_name y in
+    let a = make "a" [] in
+    bind xn y ;
+    bind yn a ;
+    assert (equals x y) ;
+  end;
+]
+
+
 let unify_tests = "Unify", [ (* {{{ *)
 
     "f(X,a) = f(a,X)", `Quick, begin fun () ->
@@ -88,23 +108,6 @@ let unify_tests = "Unify", [ (* {{{ *)
       Alcotest.check_raises "unify" Unify.Unification_failure
         (fun () -> Unify.unify x fx)
     end ;
-
-    "X -> Y ; Y -> a", `Quick, begin fun () ->
-      let get_var_name (t:Term.t) = match t with
-        | Var(xn,_) -> xn
-        | _ -> failwith "eh ,"
-      in
-      let open Term in
-      reset ();
-      let x = fresh_var () in
-      let xn = get_var_name x in
-      let y = fresh_var () in
-      let yn = get_var_name y in
-      let a = make "a" [] in
-      bind xn y ;
-      bind yn a ;
-      assert (equals x y) ;
-    end;
 
     "Bin-tree", `Quick, begin fun () ->
       try begin 
@@ -173,5 +176,6 @@ let queries = "Queries", let open Query in [ (* {{{ *)
 let () =
   Alcotest.run ~argv:Sys.argv "Infératrice"
     [ term_tests ;
+      equals_tests ;
       unify_tests ;
       queries ]

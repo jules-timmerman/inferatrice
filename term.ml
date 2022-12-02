@@ -28,85 +28,11 @@ let instantiation_number : int ref = ref 0
 let var ?(name = "") (v: var) : t =
   Var(v, name)
 
-
-(** Vérifie si une variable existe dans l'environnement *)
-let existe (v: var) (s: state option) : bool = 
-  assert (v != "");
-  let state_to_search = Option.value s ~default:!global_state in
-  let rec search l = 
-    match l with
-      [] -> false
-    | (name, _)::q -> name = v || search q
-  in search state_to_search
-
-(** Modification d'une variable.
-    On rajoute en tête de liste pour le nouveau *)
-let bind (v: var) (t: t) : unit =
-  assert (v != "");
-  global_state := (v,t)::(!global_state)
-
-(** Recherche d'une variable dans un environnement 
-    None : dans l'environnement actuel
-    Some(s) : dans l'environnement s 
-    Renvoie la valeur, ou raise fail sinon *)
-let lookup (v: var) (s: state option) : t =
-  assert (v != "");
-  let state_to_search = Option.value s ~default:!global_state in
-  let rec search l =
-    match l with
-      [] -> failwith "Variable existe pas, faut call existe avant"
-    | (name, value)::q -> if name = v then value else search q
-  in assert (existe v s) (* Au cas où *); search state_to_search
-
 (** Observation d'un terme. *)
 let observe (t: t) : obs_t =
   match t with
-    |Var(v,_) -> Var(v)
-    |Fun(s,l) -> Fun(s,l)
-
-(** Egalité syntaxique entre termes et variables. *)
-let rec var_equals (v1: var) (v2: var) : bool = 
-  let ex1 = existe v1 None and ex2 = existe v2 None in
-  (*v1 == v2 ||  *)
-  v1 = v2 || 
-  (ex1 && equals (lookup v1 None) (var v2)) || 
-  (ex2 && equals (lookup v2 None) (var v1)) || 
-  (ex1 && ex2 && equals (lookup v1 None) (lookup v2 None))     
-
-and equals (t1:t) (t2:t) : bool =
-  let rec aux (b : bool) (t1 : t) (t2 : t) : bool =
-    b &&(
-    (*t1 == t2 ||*)
-    match (observe t1), (observe t2) with
-    | Var(x), Var(y) -> var_equals x y
-    | Fun (s1, l1), Fun(s2, l2) when s1=s2 -> 
-      (
-      match l1,l2 with
-      | [],[] -> true
-      | [], _ -> false
-      | _, [] -> false
-      | hd1::tl1, hd2::tl2 -> aux b hd1 hd2 && aux b (Fun (s1, tl1)) (Fun (s2, tl1))
-      )
-    | Var(x), y when (existe x None) -> 
-        lookup x None = t2
-    | x, Var(y) when existe y None ->
-        lookup y None = t1
-    | _ -> false
-    )
-  in aux true t1 t2
-
-(** On suit une chaines de variables jusqu'à obtenir une valeur 
-    ou une variable non initialisée *)
-let follow_chain (v: var) : t = 
-  let rec parcours (name: var) : t =
-    if existe name None then 
-      let v = lookup name None in
-      match observe v with
-        Var(n) -> parcours n
-      | _ -> v
-    else
-      var name
-  in parcours v  
+    Var(v,_) -> Var(v)
+  | Fun(s,l) -> Fun(s,l)
 
 (** Constructeurs de termes. *)
 
@@ -127,6 +53,12 @@ let fresh () : var =
 let fresh_var () : t =
   var (fresh ())
 
+(** Modification d'une variable.
+    On rajoute en tête de liste pour le nouveau *)
+    let bind (v: var) (t: t) : unit =
+      assert (v != "");
+      global_state := (v,t)::(!global_state)
+
 (** [save ()] renvoie un descripteur de l'état actuel. *)
 let save () : state =
   !global_state
@@ -141,8 +73,46 @@ let restore (s: state) : unit =
     initialisé. *)
 let reset () : unit =
   global_state := [];
-  variable_number := 0 ;
-  instantiation_number := 0
+  variable_number := 0
+
+
+(** Vérifie si une variable existe dans l'environnement *)
+let existe (v: var) (s: state option) : bool = 
+  assert (v != "");
+  let state_to_search = Option.value s ~default:!global_state in
+  let rec search l = 
+    match l with
+      [] -> false
+    | (name, _)::q -> name = v || search q
+  in search state_to_search
+  
+(** Recherche d'une variable dans un environnement 
+    None : dans l'environnement actuel
+    Some(s) : dans l'environnement s 
+    Renvoie la valeur, ou raise fail sinon *)
+let lookup (v: var) (s: state option) : t =
+  assert (v != "");
+  let state_to_search = Option.value s ~default:!global_state in
+  let rec search l =
+    match l with
+      [] -> failwith "Variable existe pas, faut call existe avant"
+    | (name, value)::q -> if name = v then value else search q
+  in assert (existe v s) (* Au cas où *); search state_to_search
+
+
+(** On suit une chaines de variables jusqu'à obtenir une valeur 
+    ou une variable non initialisée *)
+    let follow_chain (v: var) : t = 
+      let rec parcours (name: var) : t =
+        if existe name None then 
+          let v = lookup name None in
+          match observe v with
+            Var(n) -> parcours n
+          | _ -> v
+        else
+          var name
+      in parcours v
+
 
 (** Pretty printing *)
 let rec pp_args (ppf: Format.formatter) (args: t list) : unit = 
@@ -182,6 +152,38 @@ let pp_state (ppf: Format.formatter) (s: state option) : unit =
   in let st = Option.value s ~default:(!global_state) in
     Format.fprintf ppf "{@.";
     Format.fprintf ppf "@[<h>%a@]@.}" pp_state_rec st 
+
+
+(** Egalité syntaxique entre termes et variables. *)
+let rec var_equals (v1: var) (v2: var) : bool = 
+  let ex1 = existe v1 None and ex2 = existe v2 None in
+  (*v1 == v2 ||  *)
+  v1 = v2 || 
+  (ex1 && equals (lookup v1 None) (var v2)) || 
+  (ex2 && equals (lookup v2 None) (var v1)) || 
+  (ex1 && ex2 && equals (lookup v1 None) (lookup v2 None))     
+
+and equals (t1:t) (t2:t) : bool =
+  let rec aux (b : bool) (t1 : t) (t2 : t) : bool =
+    b &&(
+    (*t1 == t2 ||*)
+    match (observe t1), (observe t2) with
+    | Var(x), Var(y) -> var_equals x y
+    | Fun (s1, l1), Fun(s2, l2) when s1=s2 -> 
+      (
+      match l1,l2 with
+      | [],[] -> true
+      | [], _ -> false
+      | _, [] -> false
+      | hd1::tl1, hd2::tl2 -> aux b hd1 hd2 && aux b (Fun (s1, tl1)) (Fun (s2, tl1))
+      )
+    | Var(x), y when (existe x None) -> 
+        aux true (lookup x None) t2
+    | x, Var(y) when existe y None ->
+        aux true (lookup y None) t1
+    | _ -> false
+    )
+  in aux true t1 t2
 
 let convert_var (i:int) (s:'a) : t = 
   (* Si i !=, on a changé de règle donc on vide la liste actuelle de mémoire et on change le numéro courant*)

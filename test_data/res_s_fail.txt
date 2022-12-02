@@ -1,0 +1,6 @@
+Lecture des règles dans 1_order.inf...
+
+Requête? Résolution de la requête s()...
+Fin des solutions pour cette requête.
+
+Requête? 

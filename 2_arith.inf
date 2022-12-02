@@ -5,6 +5,15 @@ derive plus(z,Y,Y).
 derive plus(s(X),Y,s(Z))
   from plus(X,Y,Z).
 
+derive plus(X,Y,Z,W)
+  from plus(X,Y,V), plus(V,Z,W).
+
+# Soustraction
+
+derive moins(X,Y,Z)
+  from plus(Z,Y,X).
+
+
 # Comparaison
 
 derive lt(z,s(X)).

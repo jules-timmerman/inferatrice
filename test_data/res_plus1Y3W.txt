@@ -1,0 +1,6 @@
+Lecture des règles dans 2_arith.inf...
+
+Requête? Résolution de la requête plus(s(z()), Var_0, s(s(s(z()))), Var_1)...
+Y = z()
+W = s(s(s(s(z()))))
+More solutions? [Y/n] 

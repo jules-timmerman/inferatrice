@@ -5,11 +5,11 @@ exception Unification_failure
 (**Supprime les couples de termes déja unifiés des listes de termes qui suivent *)
 let rec remove_couple (t1 : t) (t2 : t) (l1 : t list) (l2 : t list) : (t list * (t list))=
   match l1, l2 with 
-  | [], l -> [],l
+  | [], l -> [], l
   | l, [] -> l, []
   | hd1::tl1, hd2::tl2 when (equals t1 hd1 && equals t2 hd2)-> remove_couple t1 t2 tl1 tl2
   | hd1::tl1, hd2::tl2 when (equals t1 hd2 && equals t2 hd1)-> remove_couple t1 t2 tl1 tl2
-  | hd1::tl1, hd2::tl2 -> let (a,b) = remove_couple t1 t2 tl1 tl2 in (hd1::a, hd2::b)
+  | hd1::tl1, hd2::tl2 -> let (a, b) = remove_couple t1 t2 tl1 tl2 in (hd1::a, hd2::b)
 
 (**Supprime le terme déja unifié de la liste de termes qui suit *)
 let rec remove (t : t) (l : t list) : t list = 
@@ -22,7 +22,7 @@ let rec remove (t : t) (l : t list) : t list =
 (**Return true si la variable est déja dans le terme, false sinon*)
 let rec look_for (v : var) (t : t) : bool = 
   match observe t with
-  | Var(x) -> var_equals x v || (if (existe x None) then 
+  | Var(x) -> x == v || var_equals x v || (if (existe x None) then 
     (look_for v (lookup x None) ) else false)
   | Fun (s, []) -> false
   | Fun (s, hd::tl) ->  look_for v (Fun (s, remove hd tl)) || look_for v hd
@@ -35,12 +35,12 @@ let rec look_for (v : var) (t : t) : bool =
     ON renvoie true si il y a eu changement de la liste, false sinon.
      *)
 let sort (t : t) (l : t list) : (t list* bool) = 
-  match observe t,l with
+  match observe t, l with
   | Fun(_), h1::tl ->
       (match observe h1 with
       | Var _ -> h1::t::tl, true
       | _ -> t::l, false)
-  |_ -> t::l, false
+  | _ -> t::l, false
 
 (** La fonction unify prend deux termes et effectue des instantiations
   * pour les unifier. Par effet de bord elle rend les termes égaux,
@@ -72,6 +72,6 @@ let rec unify (t1: t) (t2: t) : unit =
   | Fun (_, []), Fun (_, _) -> raise Unification_failure (* pas le meme nb de paramètres : liste vide *)
   | Fun (_, _), Fun (_, []) -> raise Unification_failure (* idem *)
   | Fun (s1, hd1::tl1), Fun (s2, hd2::tl2) ->
-      let (a,b) = remove_couple hd1 hd2 tl1 tl2 in
-      unify hd1 hd2; unify (Fun(s1,a)) (Fun(s2,b)) (* On unifie terme par terme *)
+      let (a, b) = remove_couple hd1 hd2 tl1 tl2 in
+      unify hd1 hd2; unify (Fun(s1, a)) (Fun(s2, b)) (* On unifie terme par terme *)
 

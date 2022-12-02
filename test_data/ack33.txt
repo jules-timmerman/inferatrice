@@ -1,0 +1,3 @@
+Lecture des règles dans 2_arith.inf...
+
+Requête? 

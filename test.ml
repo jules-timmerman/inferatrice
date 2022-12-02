@@ -6,7 +6,7 @@ let term_tests = "Term", [ (* {{{ *)
   end ;
 
   "Fresh vars not equals", `Quick, begin fun () ->
-    assert (not (Term.(equals (var (fresh ())) (var (fresh ())))))
+    assert (not (Term.(equals (fresh_var ()) (fresh_var ()))))
   end ;
 
   "Bind", `Quick, begin fun () ->
@@ -130,12 +130,61 @@ let equals_tests = "Equals",[
 ]
 
 
-let unify_tests = "Unify", [ (* {{{ *)
+let unify_tests = "Unify", [
+
+    "X = Y", `Quick, begin fun () ->
+      let open Term in
+      reset () ;
+      let x = fresh_var () in
+      let y = fresh_var () in
+      Unify.unify x y ;
+      assert (equals x y)
+    end ;
+
+    "X = f()", `Quick, begin fun () ->
+      let open Term in
+      reset () ;
+      let x = Term.fresh_var () in
+      let f = Term.make "f" [] in
+      Unify.unify f x ;
+      assert (equals f x)
+    end ;
+
+    "X = f(Y)", `Quick, begin fun () ->
+      let open Term in
+      reset () ;
+      let x = Term.fresh_var () in
+      let y = Term.fresh_var () in
+      let f t = Term.make "f" [t] in
+      Unify.unify (f y) x ;
+      assert (equals (f y) x)
+    end ;
+
+    "X = f(X)", `Quick, begin fun () ->
+      let open Term in
+      reset () ;
+      let x = fresh_var () in
+      let fx = make "f" [x] in
+      assert (not (equals x fx)) ;
+      Alcotest.check_raises "unify" Unify.Unification_failure
+        (fun () -> Unify.unify x fx)
+    end ;
+
+    "f(X) = g(X)", `Quick, begin fun () ->
+      let open Term in
+      reset () ;
+      let x = fresh_var () in
+      let u = make "f" [x] in
+      let v = make "g" [x] in
+      assert (not (equals u v)) ;
+      Alcotest.check_raises "unify" Unify.Unification_failure
+        (fun () -> Unify.unify u v)
+    end ;
 
     "f(X,a) = f(a,X)", `Quick, begin fun () ->
       let open Term in
       reset () ;
-      let x = var (fresh ()) in
+      let x = fresh_var () in
       let a = make "a" [] in
       let u = make "f" [x;a] in
       let v = make "f" [a;x] in
@@ -147,11 +196,24 @@ let unify_tests = "Unify", [ (* {{{ *)
     "f(X,b) = f(a,X)", `Quick, begin fun () ->
       let open Term in
       reset () ;
-      let x = var (fresh ()) in
+      let x = fresh_var () in
       let a = make "a" [] in
       let b = make "b" [] in
       let u = make "f" [x;b] in
       let v = make "f" [a;x] in
+      assert (not (equals u v)) ;
+      Alcotest.check_raises "unify" Unify.Unification_failure
+        (fun () -> Unify.unify u v)
+    end ;
+
+    "f(Y,X) = f(f(X,a),Y)", `Quick, begin fun () ->
+      let open Term in
+      reset () ;
+      let x = fresh_var () in
+      let y = fresh_var () in
+      let a = make "a" [] in
+      let u = make "f" [y;x] in
+      let v = make "f" [make "f" [x;a];y] in
       assert (not (equals u v)) ;
       Alcotest.check_raises "unify" Unify.Unification_failure
         (fun () -> Unify.unify u v)
@@ -165,6 +227,7 @@ let unify_tests = "Unify", [ (* {{{ *)
       Alcotest.check_raises "unify" Unify.Unification_failure
         (fun () -> Unify.unify x fx)
     end ;
+
 
     "X = f(Y)", `Quick, begin fun () ->
       let open Term in
@@ -186,7 +249,7 @@ let unify_tests = "Unify", [ (* {{{ *)
         let rec tree t n =
           if n = 0 then t else tree (node t t) (n-1)
         in
-        let n = 100_000 in
+        let n = 10_000 in
         let t1 = tree x n in
         let t2 = tree y n in
         Unify.unify t1 t2
@@ -220,7 +283,7 @@ let unify_tests = "Unify", [ (* {{{ *)
         let rec peigne t v n =
           if n = 0 then t else peigne (node t v) v (n-1)
         in
-        let n = 10_000_000 in
+        let n = 20 in
         let t1 = peigne x x n in
         let t2 = peigne y y n in
         Unify.unify t1 t2

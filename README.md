@@ -195,10 +195,10 @@ Les 2 cas possibles d'unification :
 * La variable est-elle déja utilisée dans le terme?
   * Oui : `Unification failure`
   * Non : Est-elle déja liée à une autre variable / un autre terme?
-    * Non : on peut lier!
-    * Oui : est-ce à un terme différent de celui qu'on cherche à unifier?
-      * Non : Rien à faire : l'unification est déja faite!
-      * Oui : Essayer `unify` directement sur le terme lié à la variable avec le terme de base.
+	  * Non : on peut lier!
+	  * Oui : est-ce à un terme différent de celui qu'on cherche à unifier?
+	    * Non : Rien à faire : l'unification est déja faite!
+	    * Oui : Essayer `unify` directement sur le terme lié à la variable avec le terme de base.
 
 2. Unifier deux fonctions `Fun()`
    Voici notre algorithme :

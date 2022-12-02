@@ -1,19 +1,19 @@
 # Changer ces définitions si besoin pour passer de bytecode à nativecode,
 # ou changer les flags de compilation, e.g. utiliser -g pour le déboguage.
 
-OCAMLC = ocamlfind ocamlc -package alcotest -g
-OCAMLL = ocamlfind ocamlc -package alcotest -g -linkpkg
-CMO = .cmo
+OCAMLC = ocamlfind ocamlopt -package alcotest -g
+OCAMLL = ocamlfind ocamlopt -package alcotest -g -linkpkg
+CMX = .cmx
 CMA = .cma
 
 # Définition des fichiers sources associés aux différentes cibles
 
 LIB_ML = term.ml unify.ml query.ml
 TEST_ML = $(LIB_ML) test.ml
-TEST_OBJS = $(TEST_ML:.ml=$(CMO))
+TEST_OBJS = $(TEST_ML:.ml=$(CMX))
 
 INFERATRICE_ML = $(LIB_ML) ast.ml parser.ml lexer.ml convert.ml inferatrice.ml
-INFERATRICE_OBJS = $(INFERATRICE_ML:.ml=$(CMO))
+INFERATRICE_OBJS = $(INFERATRICE_ML:.ml=$(CMX))
 
 # Cibles
 
@@ -37,7 +37,7 @@ clean:
 .depend: $(wildcard *.ml) $(wildcard *.mli)
 	ocamldep $(wildcard *.ml) $(wildcard *.mli) > .depend
 
-%$(CMO): %.ml Makefile
+%$(CMX): %.ml Makefile
 	$(OCAMLC) -c $<
 %.cmi: %.mli Makefile
 	$(OCAMLC) -c $<

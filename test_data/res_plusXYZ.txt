@@ -1,0 +1,7 @@
+Lecture des règles dans 2_arith.inf...
+
+Requête? Résolution de la requête plus(Var_0, Var_1, Var_2)...
+X = z()
+Y = Var_4
+Z = Var_4
+More solutions? [Y/n] 

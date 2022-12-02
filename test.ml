@@ -109,7 +109,7 @@ let unify_tests = "Unify", [ (* {{{ *)
         (fun () -> Unify.unify x fx)
     end ;
 
-    (*"Bin-tree", `Quick, begin fun () ->
+    "Bin-tree", `Quick, begin fun () ->
       try begin 
         let node x y = Term.make "n" [x;y] in
 
@@ -118,13 +118,13 @@ let unify_tests = "Unify", [ (* {{{ *)
         let rec tree t n =
           if n = 0 then t else tree (node t t) (n-1)
         in
-        let n = 10_000_000 in
+        let n = 100_000 in
         let t1 = tree x n in
         let t2 = tree y n in
         Unify.unify t1 t2
       end with 
         Stack_overflow -> raise Stack_overflow
-    end;*)
+    end;
 
         (*"Fil", `Quick, begin fun () ->
       try begin 

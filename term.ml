@@ -165,27 +165,34 @@ let rec var_equals (v1: var) (v2: var) : bool =
   (ex2 && equals (lookup v2 None) (var v1)) || 
   (ex1 && ex2 && equals (lookup v1 None) (lookup v2 None))     
 
-and equals (t1:t) (t2:t) : bool =
-  let rec aux (b : bool) (t1 : t) (t2 : t) : bool =
-    b &&(
-    (*t1 == t2 ||*)
-    match (observe t1), (observe t2) with
-    | Var(x), Var(y) -> var_equals x y
+
+and equals (t1 : t) (t2 : t) : bool =
+  let aux_equal (l : (t*t) list) (b : bool) : (t*t) list * bool =
+  (
+    match (l) with
+    | []->[],b
+    | (h1,h2)::rest ->
+    match (observe h1), (observe h2) with
+    | Var(x), Var(y) -> [],var_equals x y
     | Fun (s1, l1), Fun(s2, l2) when s1=s2 -> 
       (
       match l1,l2 with
-      | [],[] -> true
-      | [], _ -> false
-      | _, [] -> false
-      | hd1::tl1, hd2::tl2 -> aux b hd1 hd2 && aux b (Fun (s1, tl1)) (Fun (s2, tl1))
+      | [],[] -> [],b
+      | [], _ -> [],false
+      | _, [] -> [],false
+      | hd1::tl1, hd2::tl2 -> aux_equal ((hd1,hd2)::(List.combine tl1 tl2)@rest) b
       )
     | Var(x), y when (existe x None) -> 
-        aux true (lookup x None) t2
+        aux_equal [(lookup x None),h2] b
     | x, Var(y) when existe y None ->
-        aux true (lookup y None) t1
-    | _ -> false
-    )
-  in aux true t1 t2
+        aux_equal [(lookup y None),h1] b
+    | _ -> [],false
+    )in
+  match aux_equal [t1,t2] true with
+  | _,k-> k
+
+
+
 
 let convert_var (i:int) (s:'a) : t = 
   (* Si i !=, on a changé de règle donc on vide la liste actuelle de mémoire et on change le numéro courant*)

@@ -27,6 +27,20 @@ let rec look_for (v : var) (t : t) : bool =
   | Fun (s, hd::tl) ->  look_for v (Fun (s, remove hd tl)) || look_for v hd
 
 
+(** La fct sort prend un terme et une liste de termes.
+    lorsque'on appelle sort, t est en faite le premier terme d'une liste. 
+    Si t est une fonction et que le tête de la liste l est une var : 
+    on les échange dans la liste rendue.
+    ON renvoie true si il y a eu changement de la liste, false sinon.
+     *)
+let sort (t : t) (l : t list) : (t list* bool) = 
+  match t,l with
+  | Fun(_), h1::tl ->
+      (match observe h1 with
+      | Var _ -> h1::t::tl, true
+      | _ -> t::l, false)
+  |_ -> t::l, false
+
 (** La fonction unify prend deux termes et effectue des instantiations
   * pour les unifier. Par effet de bord elle rend les termes égaux,
   * si possible; sinon elle lève l'exception Unification_failure.
@@ -44,7 +58,7 @@ let rec unify (t1: t) (t2: t) : unit =
         (if existe x None then 
           let t_bis = lookup x None in
           (
-            (if t_bis = t2 then 
+            (if equals t_bis t2 then 
             ()
           else
             unify t_bis t2)
@@ -57,5 +71,11 @@ let rec unify (t1: t) (t2: t) : unit =
   | Fun (_, []), Fun (_, _) -> raise Unification_failure (* pas le meme nb de paramètres : liste vide *)
   | Fun (_, _), Fun (_, []) -> raise Unification_failure (* idem *)
   | Fun (s1, hd1::tl1), Fun (s2, hd2::tl2) ->
-      let (a,b) = remove_couple hd1 hd2 tl1 tl2 in
-      unify hd1 hd2; unify (Fun(s1,a)) (Fun(s2,b)) (* On unifie terme par terme *)
+      match (sort hd1 tl1), (sort hd2 tl1) with
+      |(newhd1::newtl1 ,true), (newhd2::newtl2, true) ->
+        let (a,b) = remove_couple newhd1 newhd2 newtl1 newtl2 in
+        unify newhd1 newhd2; unify (Fun(s1,a)) (Fun(s2,b)) (* On unifie terme par terme *)
+      |_,_ -> 
+        let (a,b) = remove_couple hd1 hd2 tl1 tl2 in
+        unify hd1 hd2; unify (Fun(s1,a)) (Fun(s2,b)) (* On unifie terme par terme *)
+

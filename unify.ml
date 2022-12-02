@@ -22,7 +22,8 @@ let rec remove (t : t) (l : t list) : t list =
 (**Return true si la variable est déja dans le terme, false sinon*)
 let rec look_for (v : var) (t : t) : bool = 
   match observe t with
-  | Var(x) -> var_equals x v || (if (existe x None) then (look_for v (lookup x None) ) else false)
+  | Var(x) -> var_equals x v || (if (existe x None) then 
+    (look_for v (lookup x None) ) else false)
   | Fun (s, []) -> false
   | Fun (s, hd::tl) ->  look_for v (Fun (s, remove hd tl)) || look_for v hd
 
@@ -54,7 +55,7 @@ let rec unify (t1: t) (t2: t) : unit =
     if look_for x t2 then
       raise Unification_failure
     else
-        (if existe x None then 
+        (if existe x None then
           let t_bis = lookup x None in
           (
             (if equals t_bis t2 then 

@@ -40,6 +40,10 @@ $ ./run_tests
 
 Si tout se passe bien il ne devrait y avoir que des tests passés :[OK], sinon Alcotest indique le test qui a échoué ainsi que la raison :[FAIL].
 
+
+
+Pour le tant redouté test `bin_tree` avec `n=10_000`, nous le passons en 10secondes.
+
 ### Présentation
 
 L'infératrice prend en entrée un fichier contenant des règles d'inférence, de la forme
@@ -148,6 +152,11 @@ derive lt(s(X),s(Y))
 
 Dans cette règle, nous avons besoin que les `X` et `Y` crées soient les mêmes. Lors de la création de la première instance, nous ajoutons le couple composé du hash (pour garder le typage `'a`) ainsi que de la variable créée dans `instantiation_in_process`. La prochaine fois que l'on fera référence à cette variable, le hash étant identique, nous renverrons l'instance déjà créée. On réinitialise `instantiation_in_process` à chaque fois que l'on considère une nouvelle règle, ce qui est identifié grâce au numéro passé en argument. On se souviens aussi du numéro d'instantiation dans le fichier `convert.ml`.
 
+
+Pour l'égalité entre 2 termes, nous utilisons les fonction `equals` et `var_equals`.
+La première est finalement récursive terminale (min-14 avant le rendu easyy), mais nous n'avons pas eu le temps de rendre le deuxième récursif terminal aussi.
+
+
 ### Query.ml
 
 Ce fichier définit le type `Query.t` et permet son utilisation, principalement via l'utilisation de la fontion `search`.
@@ -160,42 +169,45 @@ La fonction de callback contient la fonction d'affichage des variables lorsqu'on
 
 Le but de ce fichier est de définir les utilitaires nécessaires à la conversion du type `Ast.Atom.t` au type `Query.t`. Pour cela, la fonction `rules` est utilisée pour créer une fonction `atom_to_query` qui permet de faire cette conversion tout en tenant compte des règles d'inférences saisies par l'utilisateur.
 
-La fonction `atom_to_query` prends en entrée un `Atom` dépaqueté. La fonction cherche dans les règles d'inférences saisies celles qui pourraient être utilisées comme dérivation. On s'intéresse uniquement aux règles qui ont le même nom ainsi que le même nombre d'argument que l'`Atom` d'entrée.
+La fonction `atom_to_query` prends en entrée un `Atom` dépaqueté. La fonction cherche dans les règles d'inférences saisies celles qui pourraient être utilisées comme dérivation. On s'intéresse uniquement aux règles qui ont le même nom ainsi que le même nombre d'arguments que l'`Atom` d'entrée.
 
 On crée ensuite la query résultante en encodant de la manière suivante :
+
 - Pour chaque règle, les prémices sont encodées récursivement et `AND` entre elles.
 - Pour chaque règle, les arguments de la conclusion sont mis dans un `EQUALS` avec l'argument de l'`Atom` d'entrée.
-Cela a pour effet de forcer un appel à `unify` au moment de l'évaluation de la query. 
-- Pour chaque règle, on `AND` le premier et deuxième point ensemble. 
-- On `OR` finalement tous les résultats précédents ensembles.
+  Cela a pour effet de forcer un appel à `unify` au moment de l'évaluation de la query.
+- Pour chaque règle, on `AND` le premier et deuxième point ensemble.
+- On `OR` finalement tous les résultats précédents ensemble.
 
 La fonction `query` quant à elle utilise le même principe d'encodage que la fonction `rules` mais elle n'est limitée qu'à une règle donc nous n'avons pas besoin de `OR` à la fin. Nous renvoyons aussi la fonction permettant l'affichage du résultat après l'exécution. Pour cela, nous récupérons récursivement les variables apparaissant dans l'atome passé en argument (ce qui donne le nom saisi par l'utilisateur). Nous pouvons ensuite les utiliser pour remplir le second champ des `Var` de `Term.t`.
 
 ### Unify.ml
 
 Ce fichier content la fonction `unify` et ses fonctions auxiliaires.
-Le but ici est de réussir à unifier deux termes, c'est à dire de les rendre égaux. Lorsque l'unification est impossible : On rend une exception `Unification failure`.
+Le but ici est de réussir à unifier deux termes, c'est à dire de les rendre égaux. Lorsque l'unification est impossible : on lève une exception `Unification failure`.
 
 Les 2 cas possibles d'unification :
+
 1. Une variable et un autre terme (variable ou fonction sans importance):
-Dans ce cas, on va essayer de les lier (fonction `bind` dans `Term.ml`).
-Mais quelques vérifications sont nécessaires :
+   Dans ce cas, on va essayer de les lier (fonction `bind` dans `Term.ml`).
+   Mais quelques vérifications sont nécessaires :
+
 * La variable est-elle déja utilisée dans le terme?
   * Oui : `Unification failure`
   * Non : Est-elle déja liée à une autre variable / un autre terme?
-	* Non : on peut lier!
-	* Oui : est-ce à un terme différent de celui qu'on cherche à unifier?
-	* Non : Rien à faire : l'unification est déja faite!
-	* Oui : Essayer `unify` directement sur le terme lié à la variable avec le terme de base.
+    * Non : on peut lier!
+    * Oui : est-ce à un terme différent de celui qu'on cherche à unifier?
+      * Non : Rien à faire : l'unification est déja faite!
+      * Oui : Essayer `unify` directement sur le terme lié à la variable avec le terme de base.
 
-2. Deux fonctions `Fun()`:
-Voici notre algorithme :
+2. Unifier deux fonctions `Fun()`
+   Voici notre algorithme :
+
 * Les deux fonctions ont-elles le même nom?
   * Non : `Unification failure`
-  * Oui : 
-    * Si les deux listes de termes sont vides : Rien à faire : l'unification est déja faite!
-  	* Si l'une des deux listes est vide : `Unification failure`
-    * On va pouvoir s'interresser à la liste: 
-	-> On commence par appeler la fonctions auxiliaire `sort` sur les 2 listes. Elle sert à prioriser l'unification de variables avant le reste.
-	-> On appelle ensuite la fonction auxiliaire `remove_couple` qui va supprimer des queues de listes le couple de termes de la tête de liste qu'on va unifier, avant unfier le reste de la liste.
-	-> C'est donc reparti pour `unify` avec les têtes de listes puis avec les termes dans la queue.
+  * Oui :
+    * Si les deux listes de termes sont vides : Rien à faire, l'unification est déja faite!
+    * Si l'une des deux listes est vide : `Unification failure`
+    * On va pouvoir s'intérresser à la liste:
+      * On appelle la fonction auxiliaire `remove_couple` qui va supprimer des queues de listes le couple de termes de la tête de liste qu'on va unifier, avant d'unifier le reste de la liste.
+      * C'est donc reparti pour `unify` avec les têtes de listes puis avec les termes dans la queue.

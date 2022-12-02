@@ -79,7 +79,5 @@ let query (atomes: string Ast.Atom.t list) : Query.t * (unit -> unit) =
   let vars_ori = List.fold_left 
     (fun li a -> get_var_from_astatom li a) [] atomes in
   (* Les variables sous forme de Term.t avec les noms de l'utilisateur *)
-  let l = (Query.get_var_from_query q) in
-  assert(List.length l = List.length vars_ori) ;
-  let vars = List.map2 (fun v s -> Term.var ~name:s v) l vars_ori in
+  let vars = List.map2 (fun v s -> Term.var ~name:s v) (Query.get_var_from_query q) vars_ori in
   q, fun () -> Format.printf "%a" Term.pp_vars_in_list (List.rev vars) 

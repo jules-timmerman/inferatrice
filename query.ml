@@ -42,14 +42,11 @@ let rec search ?(atom_to_query = default_search) (cont:(unit -> 'a)) (t:t) : uni
         | Or(t1, t2) ->
           let s = Term.save () in
           f cont t1 ;
-          Term.restore s ;
-          assert(Term.save () = s); 
+          Term.restore s ; 
           f cont t2
         | Equals (t1, t2) ->
           begin
-            try (Unify.unify t1 t2 ; 
-            assert(Term.equals t1 t2) ; 
-            ignore (cont ())) with
+            try (Unify.unify t1 t2 ; ignore (cont ())) with
               |Unify.Unification_failure -> ()
           end
         | Atom(n, l) -> let q = atom_to_query n l in f cont q

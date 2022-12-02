@@ -124,7 +124,41 @@ let unify_tests = "Unify", [ (* {{{ *)
         Unify.unify t1 t2
       end with 
         Stack_overflow -> raise Stack_overflow
-    end
+    end;
+
+        (*"Fil", `Quick, begin fun () ->
+      try begin 
+        let node x = Term.make "n" [x] in
+
+        let x = Term.fresh_var () in
+        let y = Term.fresh_var () in
+        let rec fil t n =
+          if n = 0 then t else fil (node t) (n-1)
+        in
+        let n = 10_000_000 in
+        let t1 = fil x n in
+        let t2 = fil y n in         
+        Unify.unify t1 t2
+      end with 
+        Stack_overflow -> raise Stack_overflow
+    end;*)
+
+    (*"Peigne", `Quick, begin fun () ->
+      try begin 
+        let node x y = Term.make "n" [x;y] in
+
+        let x = Term.fresh_var () in
+        let y = Term.fresh_var () in
+        let rec peigne t v n =
+          if n = 0 then t else peigne (node t v) v (n-1)
+        in
+        let n = 10_000_000 in
+        let t1 = peigne x x n in
+        let t2 = peigne y y n in
+        Unify.unify t1 t2
+      end with 
+        Stack_overflow -> raise Stack_overflow
+    end*)
 
 
 ] (* }}} *)

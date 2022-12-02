@@ -92,4 +92,4 @@ let query (atomes: string Ast.Atom.t list) : Query.t * (unit -> unit) =
   let l = remove_doublon (Query.get_var_from_query q) in
   assert(List.length l = List.length vars_ori) ;
   let vars = List.map2 (fun v s -> Term.var ~name:s v) l vars_ori in
-  q, fun () -> Format.printf "\nTrouvé : \n%a" Term.pp_vars_in_list (List.rev vars) 
+  q, fun () -> Format.printf "%a" Term.pp_vars_in_list (List.rev vars) 

@@ -65,5 +65,5 @@ echo "ack(3,3,X)." | ./inferatrice 2_arith.inf > test_data/ack33.txt
 check "test_data/ack33.txt" "test_data/res_ack33.txt"
 
 echo -n "X - 7 < 10 ... "
-echo "moins(X,7,W), lt(W,10)." | ./inferatrice 2_arith.inf > test_data/ack33.txt
-check "test_data/ack33.txt" "test_data/res_ack33.txt"
+echo "moins(X,7,W), lt(W,10)." | ./inferatrice 2_arith.inf > test_data/Xmoins7inf10.txt
+check "test_data/Xmoins7inf10.txt" "test_data/res_Xmoins7inf10.txt"

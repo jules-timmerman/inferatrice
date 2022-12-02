@@ -35,7 +35,7 @@ let rec look_for (v : var) (t : t) : bool =
     ON renvoie true si il y a eu changement de la liste, false sinon.
      *)
 let sort (t : t) (l : t list) : (t list* bool) = 
-  match t,l with
+  match observe t,l with
   | Fun(_), h1::tl ->
       (match observe h1 with
       | Var _ -> h1::t::tl, true
@@ -51,6 +51,7 @@ let sort (t : t) (l : t list) : (t list* bool) =
   * en cas d'échec. *)
 let rec unify (t1: t) (t2: t) : unit =
   match observe t1, observe t2 with
+  | Var x, Var y when (var_equals x y) -> ()
   | Var x, t -> (* Cas une variable et un terme : on unifie si la variable n'est pas dans t *)
     if look_for x t2 then
       raise Unification_failure
@@ -71,11 +72,6 @@ let rec unify (t1: t) (t2: t) : unit =
   | Fun (_, []), Fun (_, _) -> raise Unification_failure (* pas le meme nb de paramètres : liste vide *)
   | Fun (_, _), Fun (_, []) -> raise Unification_failure (* idem *)
   | Fun (s1, hd1::tl1), Fun (s2, hd2::tl2) ->
-      match (sort hd1 tl1), (sort hd2 tl1) with
-      |(newhd1::newtl1 ,true), (newhd2::newtl2, true) ->
-        let (a,b) = remove_couple newhd1 newhd2 newtl1 newtl2 in
-        unify newhd1 newhd2; unify (Fun(s1,a)) (Fun(s2,b)) (* On unifie terme par terme *)
-      |_,_ -> 
-        let (a,b) = remove_couple hd1 hd2 tl1 tl2 in
-        unify hd1 hd2; unify (Fun(s1,a)) (Fun(s2,b)) (* On unifie terme par terme *)
+      let (a,b) = remove_couple hd1 hd2 tl1 tl2 in
+      unify hd1 hd2; unify (Fun(s1,a)) (Fun(s2,b)) (* On unifie terme par terme *)
 
